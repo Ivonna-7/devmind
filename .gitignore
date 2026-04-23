@@ -137,3 +137,11 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# AI assistant config
+.opencode/
+
+# Project docs (personal notes, not for public repo)
+AGENTS.md
+docs/
+fullstack-learning-guide.md
