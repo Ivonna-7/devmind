@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import pool from './config/db.js';
 import authRouter from "./routes/auth.js"
 import cardsRouter from "./routes/cards.js"
+import socialRouter from "./routes/social.js"
 
 // 读取 .env 文件里的配置，加载到 process.env 里
 // process 是 Node.js 内置的一个全局对象，代表当前运行的进程。process.env 是它上面挂的一个属性，存放所有环境变量。
@@ -28,6 +29,7 @@ app.get('/',(req,res)=>{
 });
 app.use('/api/auth',authRouter)
 app.use('/api/cards',cardsRouter)
+app.use('/api',socialRouter)
 // 启动服务器，监听指定端口
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
