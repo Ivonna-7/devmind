@@ -1,4 +1,4 @@
-import bcrypt from "bcrypt";
+﻿import bcrypt from "bcrypt";
 import { generateToken } from "../utils/jwt.js";
 import {
   createUser,
@@ -20,73 +20,60 @@ import type { Request, Response } from "express";
  */
 export const register = async (req: Request, res: Response) => {
   try {
-    const { username, email, password } = req.body; // 从请求体拿到用户输入
-    const passwordHash = await bcrypt.hash(password, 10); // 对密码加密
-    const user = await createUser(username, email, passwordHash); // 写入数据库
-    const token = generateToken(user.id); // 生成token
-    res.status(201).json({ token, user }); // 201 专指"创建了新资源"
+    const { username, email, password } = req.body;
+    const passwordHash = await bcrypt.hash(password, 10);
+    const user = await createUser(username, email, passwordHash);
+    const token = generateToken(user.id);
+    res.status(201).json({ token, user });
   } catch (error: any) {
     // 用户名或邮箱已存在（PostgreSQL 唯一约束冲突的错误码是 23505）
     if (error.code === "23505") {
-      res.status(409).json({ error: "用户名或邮箱已存在" });
-      return;
+      return res.status(409).json({ error: "用户名或邮箱已存在" });
     }
-    res.status(500).json({ error: "服务器错误" });
+    // 其他错误抛给全局 errorHandler
+    throw error;
   }
 };
 
 // 登录接口
 export const login = async (req: Request, res: Response) => {
-  try {
-    const { email, password } = req.body;
-    const user = await findUserByEmail(email);
-    if (!user) {
-      res.status(401).json({ error: "邮箱或密码错误" });
-      return;
-    }
-    const isPasswordValid = await bcrypt.compare(password, user.password_hash);
-    if (!isPasswordValid) {
-      res.status(401).json({ error: "邮箱或密码错误" });
-      return;
-    }
-    const token = generateToken(user.id);
-    const { password_hash, ...userWithoutPassword } = user;
-    res.json({ token, user: userWithoutPassword });
-  } catch (error) {
-    res.status(500).json({ error: "服务器错误" });
+  const { email, password } = req.body;
+  const user = await findUserByEmail(email);
+  if (!user) {
+    res.status(401).json({ error: "邮箱或密码错误" });
+    return;
   }
+  const isPasswordValid = await bcrypt.compare(password, user.password_hash);
+  if (!isPasswordValid) {
+    res.status(401).json({ error: "邮箱或密码错误" });
+    return;
+  }
+  const token = generateToken(user.id);
+  const { password_hash, ...userWithoutPassword } = user;
+  res.json({ token, user: userWithoutPassword });
 };
 
 // 获取当前用户信息（需要登录）
 export const getUserInfo = async (req: Request, res: Response) => {
-  try {
-    const userId = (req as any).userId; // 从中间件挂载的 userId 获取，不是 req.body
-    const user = await findUserById(userId);
-    if (!user) {
-      res.status(404).json({ error: "用户不存在" });
-      return;
-    }
-    const { password_hash, ...userWithoutPassword } = user;
-    res.json(userWithoutPassword);
-  } catch (error) {
-    res.status(500).json({ error: "服务器错误" });
+  const userId = (req as any).userId;
+  const user = await findUserById(userId);
+  if (!user) {
+    res.status(404).json({ error: "用户不存在" });
+    return;
   }
+  const { password_hash, ...userWithoutPassword } = user;
+  res.json(userWithoutPassword);
 };
 
 // 更新用户资料（需要登录）
-export const updateUserInfo =async (req: Request, res: Response) => { 
+export const updateUserInfo = async (req: Request, res: Response) => {
   const { nickname, avatar, bio } = req.body;
-  try {
-    const userId = (req as any).userId;
-    const user = await updateUser(userId, nickname, avatar, bio);
-    if (!user) {
-      res.status(404).json({ error: "用户不存在" });
-      return;
-    }
-    const { password_hash, ...userWithoutPassword } = user;
-    res.json(userWithoutPassword);
-  } catch (error) {
-    res.status(500).json({ error: "服务器错误" });
+  const userId = (req as any).userId;
+  const user = await updateUser(userId, nickname, avatar, bio);
+  if (!user) {
+    res.status(404).json({ error: "用户不存在" });
+    return;
   }
-
+  const { password_hash, ...userWithoutPassword } = user;
+  res.json(userWithoutPassword);
 };
