@@ -7,6 +7,7 @@ import cardsRouter from "./routes/cards.js"
 import socialRouter from "./routes/social.js"
 import statsRouter from "./routes/stats.js"
 import tagsRouter from "./routes/tags.js"
+import usersRouter from "./routes/users.js"
 import { errorHandler } from "./middleware/errorHandler.js"
 
 // 读取 .env 文件里的配置，加载到 process.env 里
@@ -28,6 +29,7 @@ app.use(express.json())
 app.get('/', (req, res) => {
   res.json({ message: "hello world" })
 });
+app.use('/api/users', usersRouter)  // 注意：放 socialRouter 前面，避免被 /api 前缀误匹配
 app.use('/api/auth', authRouter)
 app.use('/api/cards', cardsRouter)
 app.use('/api', socialRouter)

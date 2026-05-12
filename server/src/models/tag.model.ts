@@ -60,21 +60,35 @@ export const getCardsByTag = async (
     // 这是 SQL 里"筛选条件" vs "展示数据"分离的经典技巧
   const listResult =await pool.query(
     `SELECT c.*,
-    COALESCE (json_agg(t.name) FILTER (WHERE t.name IS NOT NULL), '[]') AS tags
+    COALESCE (json_agg(DISTINCT t.name) FILTER (WHERE t.name IS NOT NULL), '[]') AS tags,
+    u.id AS author_id,
+    u.username AS author_username,
+    u.nickname AS author_nickname,
+    u.avatar AS author_avatar,
+    (SELECT COUNT(*) FROM likes WHERE card_id = c.id)::int AS likes_count,
+    (SELECT COUNT(*) FROM favorites WHERE card_id = c.id)::int AS favorites_count
     FROM cards c
+    LEFT JOIN users u ON c.user_id = u.id
     JOIN card_tags ct2 ON c.id=ct2.card_id
     JOIN tags t2 ON ct2.tag_id=t2.id AND t2.name=$1
     LEFT JOIN card_tags ct ON c.id=ct.card_id
     LEFT JOIN tags t ON ct.tag_id =t.id
     WHERE c.visibility = 'public'
-    GROUP BY c.id
+    GROUP BY c.id, u.id
     ORDER BY c.created_at DESC
     LIMIT $2 OFFSET $3`,
     [tagName, limit, offset]
   )
   const total = parseInt(countResult.rows[0].count);
+  const cards = listResult.rows.map((row: any) => {
+    const { author_id, author_username, author_nickname, author_avatar, ...card } = row;
+    return {
+      ...card,
+      author: { id: author_id, username: author_username, nickname: author_nickname, avatar: author_avatar },
+    };
+  });
   return{
-    cards:listResult.rows,
+    cards,
     total,
     page,
     limit,

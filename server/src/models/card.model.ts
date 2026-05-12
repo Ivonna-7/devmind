@@ -36,18 +36,36 @@ export const createCard = async (
   return await getCardById(card.id);
 };
 
-// 按 id 查卡片（含 tags，联表查询）
-export const getCardById = async (id: number) => {
+// 按 id 查卡片（含 tags / 作者信息 / 点赞收藏数 / 当前用户是否已点赞收藏）
+// currentUserId 用于判断 liked_by_me / favorited_by_me；未登录传 undefined，默认 0（不会匹配任何用户）
+export const getCardById = async (id: number, currentUserId?: number) => {
   const cardResult = await pool.query(
-    `SELECT c.*, COALESCE(json_agg(t.name) FILTER(WHERE t.name IS NOT NULL), '[]') AS tags
+    `SELECT 
+       c.*,
+       COALESCE(json_agg(DISTINCT t.name) FILTER (WHERE t.name IS NOT NULL), '[]') AS tags,
+       u.id AS author_id,
+       u.username AS author_username,
+       u.nickname AS author_nickname,
+       u.avatar AS author_avatar,
+       u.bio AS author_bio,
+       (SELECT COUNT(*) FROM likes WHERE card_id = c.id)::int AS likes_count,
+       (SELECT COUNT(*) FROM favorites WHERE card_id = c.id)::int AS favorites_count,
+       EXISTS(SELECT 1 FROM likes WHERE card_id = c.id AND user_id = $2) AS liked_by_me,
+       EXISTS(SELECT 1 FROM favorites WHERE card_id = c.id AND user_id = $2) AS favorited_by_me
      FROM cards c
+     LEFT JOIN users u ON c.user_id = u.id
      LEFT JOIN card_tags ct ON c.id = ct.card_id
      LEFT JOIN tags t ON ct.tag_id = t.id
      WHERE c.id = $1
-     GROUP BY c.id`,
-    [id]
+     GROUP BY c.id, u.id`,
+    [id, currentUserId || 0]
   );
-  return cardResult.rows[0];
+  if (!cardResult.rows[0]) return undefined;
+  const { author_id, author_username, author_nickname, author_avatar, author_bio, ...card } = cardResult.rows[0];
+  return {
+    ...card,
+    author: { id: author_id, username: author_username, nickname: author_nickname, avatar: author_avatar, bio: author_bio },
+  };
 };
 // 获取卡片列表（type:卡片类型，tag:标签名，visibility:可见性，userId:查指定用户的卡片）
 /**
@@ -119,7 +137,7 @@ export const getCardList = async (
   // 否则（默认）→ 先按置顶排（置顶的在前），再按创建时间降序（最新的在前）
   const orderBy =
     sort === "most_liked"
-      ? "ORDER BY c.created_at DESC"
+      ? "ORDER BY likes_count DESC, c.created_at DESC"
       : "ORDER BY c.is_pinned DESC, c.created_at DESC";
   const offset = (page - 1) * limit;
   // 查总数  DISTINCT — 去重
@@ -131,19 +149,36 @@ export const getCardList = async (
   // 查列表   json_agg把多个标签名聚合成 JSON 数组
   // COALESCE(..., '[]') — 如果上面整个结果是 NULL（卡片完全没标签），就返回空数组 '[]' 而不是 null
   const listResult = await pool.query(
-    `SELECT c.*,COALESCE (json_agg(t.name) FILTER(WHERE t.name IS NOT NULL),'[]')AS tags
+    `SELECT 
+       c.*,
+       COALESCE(json_agg(DISTINCT t.name) FILTER (WHERE t.name IS NOT NULL), '[]') AS tags,
+       u.id AS author_id,
+       u.username AS author_username,
+       u.nickname AS author_nickname,
+       u.avatar AS author_avatar,
+       (SELECT COUNT(*) FROM likes WHERE card_id = c.id)::int AS likes_count,
+       (SELECT COUNT(*) FROM favorites WHERE card_id = c.id)::int AS favorites_count
     FROM cards c
+    LEFT JOIN users u ON c.user_id = u.id
     LEFT JOIN card_tags ct ON c.id=ct.card_id
     LEFT JOIN tags t ON ct.tag_id=t.id
     ${tagJoin}
     ${where}
-    GROUP BY c.id
+    GROUP BY c.id, u.id
     ${orderBy}
     LIMIT $${paramsIndex} OFFSET $${paramsIndex + 1}`,
     [...params, limit, offset]
   );
+  // 组装 author 嵌套对象
+  const cards = listResult.rows.map((row: any) => {
+    const { author_id, author_username, author_nickname, author_avatar, ...card } = row;
+    return {
+      ...card,
+      author: { id: author_id, username: author_username, nickname: author_nickname, avatar: author_avatar },
+    };
+  });
   return {
-    cards: listResult.rows,
+    cards,
     total,
     page,
     limit,

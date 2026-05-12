@@ -77,3 +77,21 @@ export const updateUserInfo = async (req: Request, res: Response) => {
   const { password_hash, ...userWithoutPassword } = user;
   res.json(userWithoutPassword);
 };
+
+// GET /api/users/:id — 查看任意用户的公开信息（无需登录）
+// 返回 id / username / nickname / avatar / bio / created_at / updated_at
+// 不返回 email（隐私）和 password_hash（机密）
+export const getUserPublicInfoHandler = async (req: Request, res: Response) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id) || id <= 0) {
+    res.status(400).json({ error: "无效的用户 ID" });
+    return;
+  }
+  const user = await findUserById(id);
+  if (!user) {
+    res.status(404).json({ error: "用户不存在" });
+    return;
+  }
+  const { password_hash, email, ...publicFields } = user;
+  res.status(200).json(publicFields);
+};

@@ -31,14 +31,14 @@ export const createCardHandler = async (req: Request, res: Response) => {
 
 // 卡片详情
 export const getCardDetailHandler = async (req: Request, res: Response) => {
-  const card = await getCardById(Number(req.params.id));
+  const userId = (req as any).userId; // 可能 undefined（未登录）
+  const card = await getCardById(Number(req.params.id), userId);
   if (!card) {
     res.status(404).json({ error: "卡片不存在" });
     return;
   }
   // 私有卡片只有作者能看
   if (card.visibility === "private") {
-    const userId = (req as any).userId;
     if (!userId || card.user_id !== userId) {
       res.status(404).json({ error: "卡片不存在" });
       return;

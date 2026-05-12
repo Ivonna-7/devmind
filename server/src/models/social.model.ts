@@ -46,20 +46,34 @@ export const getUserFavoriteCards = async (
 //   favorites 表的 created_at 是收藏时间（和卡片的 created_at 不一样）
   const listResult = await pool.query(
     `SELECT c.*,
-    COALESCE(json_agg(t.name) FILTER (WHERE t.name IS NOT NULL),'[]')AS tags,
+    COALESCE(json_agg(DISTINCT t.name) FILTER (WHERE t.name IS NOT NULL),'[]') AS tags,
+    u.id AS author_id,
+    u.username AS author_username,
+    u.nickname AS author_nickname,
+    u.avatar AS author_avatar,
+    (SELECT COUNT(*) FROM likes WHERE card_id = c.id)::int AS likes_count,
+    (SELECT COUNT(*) FROM favorites WHERE card_id = c.id)::int AS favorites_count,
     f.created_at AS favorited_at
     FROM favorites f
     JOIN cards c ON f.card_id = c.id
+    LEFT JOIN users u ON c.user_id = u.id
     LEFT JOIN card_tags ct ON c.id = ct.card_id
     LEFT JOIN tags t ON ct.tag_id = t.id
     WHERE f.user_id = $1
-    GROUP BY c.id,f.created_at
+    GROUP BY c.id, u.id, f.created_at
     ORDER BY f.created_at DESC
     LIMIT $2 OFFSET $3`,
     [userId, limit, offset]
   );
+  const cards = listResult.rows.map((row: any) => {
+    const { author_id, author_username, author_nickname, author_avatar, ...card } = row;
+    return {
+      ...card,
+      author: { id: author_id, username: author_username, nickname: author_nickname, avatar: author_avatar },
+    };
+  });
   return {
-    cards:listResult.rows,
+    cards,
     total,
     page,
     limit,
