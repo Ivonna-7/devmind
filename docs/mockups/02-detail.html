@@ -1,0 +1,206 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>DevMind · 卡片详情</title>
+<link rel="stylesheet" href="tokens.css">
+<style>
+  .detail-layout { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 48px; padding-top: 28px; }
+  .breadcrumb { font-size: 13px; color: var(--ink-500); display: flex; align-items: center; gap: 8px; margin-bottom: 18px; }
+  .breadcrumb .sep { color: var(--ink-300); }
+  .breadcrumb a:hover { color: var(--brand); }
+  .title-block { position: relative; padding-top: 18px; margin-bottom: 24px; }
+  .title-block .tape-inline { position: relative; display: inline-block; margin-bottom: 14px; top: auto; left: auto; transform: rotate(-2deg); }
+  .author-row { display: flex; align-items: center; gap: 14px; padding: 14px 0; border-top: 1px solid var(--line-soft); border-bottom: 1px solid var(--line-soft); margin-bottom: 32px; }
+  .author-row .name { font-size: 14px; font-weight: 600; color: var(--ink-900); }
+  .author-row .meta { font-size: 12.5px; color: var(--ink-500); }
+  .answer-box { margin: 22px 0; padding: 18px 20px; background: linear-gradient(to bottom right, #FFFBEB, #FEF3C7); border: 1px solid #FDE68A; border-radius: 12px; }
+  .answer-box .head { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #92400E; font-weight: 600; margin-bottom: 10px; }
+  .answer-box.expanded .head::after { content: "▲"; margin-left: auto; font-size: 10px; }
+  .answer-box.collapsed .head::after { content: "▼"; margin-left: auto; font-size: 10px; }
+  .action-bar { display: flex; align-items: center; gap: 10px; padding: 20px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); margin-top: 40px; }
+  .action-btn { display: flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 10px; border: 1px solid var(--line); background: #FFFFFF; color: var(--ink-700); font-size: 13.5px; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+  .action-btn:hover { background: var(--soft); }
+  .action-btn.liked { background: #FEE2E2; border-color: #FCA5A5; color: #B91C1C; }
+  .action-btn.saved { background: #FEF3C7; border-color: #FDE68A; color: #92400E; }
+  .aside-card { background: #FFFFFF; border: 1px solid var(--line); border-radius: 12px; padding: 18px; margin-bottom: 18px; }
+  .aside-card .h { font-size: 12px; font-weight: 600; color: var(--ink-500); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 14px; }
+  .toc { font-size: 13px; }
+  .toc a { display: block; padding: 5px 0 5px 10px; color: var(--ink-700); border-left: 2px solid transparent; transition: all 0.15s; }
+  .toc a:hover { color: var(--brand); }
+  .toc a.active { border-left-color: var(--brand); color: var(--brand); font-weight: 500; background: rgba(180,83,9,0.04); }
+  .toc a.sub { padding-left: 22px; font-size: 12.5px; color: var(--ink-500); }
+  .related-item { display: block; padding: 10px 0; border-bottom: 1px solid var(--line-soft); }
+  .related-item:last-child { border-bottom: 0; }
+  .related-item .t { font-size: 13px; font-weight: 500; color: var(--ink-900); line-height: 1.4; margin-bottom: 3px; }
+  .related-item .m { font-size: 11.5px; color: var(--ink-500); }
+  .related-item:hover .t { color: var(--brand); }
+  .author-aside-card { text-align: center; padding: 22px 18px; }
+  .author-aside-card .big-avatar { width: 56px; height: 56px; border-radius: 50%; background: linear-gradient(135deg, #60A5FA, #2563EB); color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 18px; margin: 0 auto 10px; box-shadow: 0 2px 8px rgba(37,99,235,0.2); }
+  .author-aside-card .n { font-size: 16px; font-weight: 600; letter-spacing: -0.005em; }
+  .author-aside-card .b { font-size: 12.5px; color: var(--ink-500); margin-top: 3px; }
+  .author-aside-card .s { display: flex; justify-content: space-around; margin: 14px 0; padding: 14px 0; border-top: 1px solid var(--line-soft); border-bottom: 1px solid var(--line-soft); }
+  .author-aside-card .s .v { font-family: "Instrument Serif", serif; font-weight: 700; font-size: 17px; color: var(--ink-900); }
+  .author-aside-card .s .l { font-size: 11px; color: var(--ink-500); }
+  .prose-img-ph { width: 100%; height: 220px; background: linear-gradient(135deg, #FDE68A 0%, #FCD34D 40%, #F59E0B 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: rgba(120,53,15,0.6); font-family: "Instrument Serif", serif; font-size: 15px; margin: 20px 0; }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="01-home.html" class="logo">
+      <div class="logo-mark"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 016.5 2H20v20H6.5a2.5 2.5 0 010-5H20"/></svg></div>
+      <span class="logo-text">DevMind</span>
+    </a>
+    <div class="search-box">
+      <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+      <input type="text" placeholder="搜索卡片、标签、作者...">
+      <div class="kbd-hint"><kbd>⌘K</kbd></div>
+    </div>
+    <nav class="nav">
+      <a href="01-home.html" class="active">首页</a>
+      <a href="03-workspace.html">工作台</a>
+      <a href="04-dashboard.html">仪表盘</a>
+    </nav>
+    <div class="avatar">IV</div>
+  </div>
+</header>
+
+<div class="container page-body">
+
+  <div class="detail-layout">
+
+    <!-- 主内容 -->
+    <article>
+      <nav class="breadcrumb">
+        <a href="01-home.html">首页</a>
+        <span class="sep">›</span>
+        <a href="#">JavaScript</a>
+        <span class="sep">›</span>
+        <a href="#">闭包</a>
+      </nav>
+
+      <div class="title-block">
+        <span class="tape tape-inline tape-amber">💡 面试题 · 中等</span>
+        <h1 class="prose" style="margin:0;">JavaScript 闭包的原理与常见陷阱</h1>
+      </div>
+
+      <div class="author-row">
+        <div class="avatar" style="background: linear-gradient(135deg, #60A5FA, #2563EB);">ZS</div>
+        <div>
+          <div class="name">张三</div>
+          <div class="meta">2026-05-10 · 预计阅读 4 分钟 · 最后更新于 2 天前</div>
+        </div>
+        <div style="margin-left: auto; display: flex; gap: 8px;">
+          <button class="btn btn-sm">📌 置顶</button>
+          <button class="btn btn-sm">✏️ 编辑</button>
+        </div>
+      </div>
+
+      <div class="prose">
+        <h2 id="what-is-closure">什么是闭包</h2>
+        <p>
+          <strong>闭包（Closure）</strong>是指一个函数可以访问其外部函数作用域中的变量，即使外部函数已经执行完毕。
+          这是 JavaScript 中最重要的概念之一，也是函数式编程的基石。
+        </p>
+        <p>
+          简单来说：<code>内部函数</code> + <code>它记住的外部变量</code> = <strong>闭包</strong>。
+        </p>
+
+        <div class="code-snippet">
+<span class="tk-key">function</span> <span class="tk-fn">counter</span>() {<br>
+&nbsp;&nbsp;<span class="tk-key">let</span> <span class="tk-var">count</span> = <span class="tk-num">0</span>;<br>
+&nbsp;&nbsp;<span class="tk-com">// 返回的这个函数记住了 count</span><br>
+&nbsp;&nbsp;<span class="tk-key">return</span> <span class="tk-key">function</span> () {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tk-key">return</span> ++<span class="tk-var">count</span>;<br>
+&nbsp;&nbsp;};<br>
+}<br>
+<br>
+<span class="tk-key">const</span> <span class="tk-var">inc</span> = <span class="tk-fn">counter</span>();<br>
+<span class="tk-fn">inc</span>(); <span class="tk-com">// 1</span><br>
+<span class="tk-fn">inc</span>(); <span class="tk-com">// 2 - count 没有消失</span>
+        </div>
+
+        <h2 id="pitfalls">常见陷阱</h2>
+        <blockquote>
+          99% 的面试追问都从这里开始：「for 循环里用 var 定义循环变量，为什么 setTimeout 打印的全是最终值？」
+        </blockquote>
+        <ol>
+          <li><strong>var 的函数作用域</strong>：所有异步回调共享同一个 <code>i</code></li>
+          <li><strong>let 的块级作用域</strong>：每次循环创建新绑定，各自独立闭包</li>
+          <li><strong>IIFE 变通</strong>：立即执行函数捕获当前值，ES5 时代的经典解法</li>
+          <li><strong>内存泄漏风险</strong>：闭包持有的 DOM 引用不会被 GC 回收</li>
+        </ol>
+
+        <h2 id="use-cases">实战场景</h2>
+        <p>闭包不只是面试题，它在以下场景大量使用：</p>
+        <ul>
+          <li><strong>模块私有状态</strong>：React Hooks、Vuex 的 state 本质都是闭包</li>
+          <li><strong>柯里化与偏函数应用</strong>：<code>curry</code>、<code>partial</code> 必然用闭包</li>
+          <li><strong>防抖节流</strong>：<code>debounce</code>/<code>throttle</code> 的 timer 靠闭包保留</li>
+          <li><strong>事件处理器私有数据</strong>：给每个按钮绑定独立状态</li>
+        </ul>
+
+        <div class="prose-img-ph">[ 闭包作用域链示意图 ]</div>
+
+        <h2 id="answer">💡 面试时应该怎么答</h2>
+
+        <div class="answer-box expanded">
+          <div class="head">🎯 参考答案（已展开）</div>
+          <div style="font-size: 14px; color: var(--ink-700); line-height: 1.75;">
+            <p style="margin: 0 0 8px;">我会分三层回答：</p>
+            <p style="margin: 0 0 8px;"><strong>1. 定义</strong>：闭包 = 函数 + 它引用的外部作用域。</p>
+            <p style="margin: 0 0 8px;"><strong>2. 本质</strong>：JS 引擎在函数创建时保留对词法环境的引用，即使外层执行完，被引用的变量也不会被回收。</p>
+            <p style="margin: 0;"><strong>3. 实战</strong>：Hooks、柯里化、防抖、模块私有状态都是闭包的应用，我在项目中用它实现过 XX。</p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Action bar -->
+      <div class="action-bar">
+        <button class="action-btn liked">❤ 已点赞 · 24</button>
+        <button class="action-btn saved">☆ 已收藏 · 12</button>
+        <button class="action-btn">🔗 分享</button>
+        <div style="margin-left: auto; display: flex; gap: 6px;">
+          <span class="chip chip-amber">JavaScript</span>
+          <span class="chip chip-amber">闭包</span>
+          <span class="chip">面试</span>
+          <span class="chip">ES6</span>
+        </div>
+      </div>
+
+    </article>
+
+    <!-- 右侧 -->
+    <aside>
+      <div class="aside-sticky">
+        <!-- 作者卡 -->
+        <div class="aside-card author-aside-card">
+          <div class="big-avatar">ZS</div>
+          <div class="n">张三</div>
+          <div class="b">前端工程师 · Vue / TypeScript</div>
+        </div>
+
+        <!-- 目录 -->
+        <div class="aside-card">
+          <div class="h">本页目录</div>
+          <nav class="toc">
+            <a href="#what-is-closure">什么是闭包</a>
+            <a href="#pitfalls" class="active">常见陷阱</a>
+            <a href="#use-cases">实战场景</a>
+            <a href="#answer">面试怎么答</a>
+          </nav>
+        </div>
+
+
+      </div>
+    </aside>
+
+  </div>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,291 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>DevMind · 仪表盘</title>
+<link rel="stylesheet" href="tokens.css">
+<style>
+  .dash-head { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 22px; }
+  .dash-title { font-family: "Instrument Serif", serif; font-size: 32px; font-weight: 600; letter-spacing: -0.01em; }
+  .dash-sub { font-size: 13.5px; color: var(--ink-500); margin-top: 4px; }
+
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin-bottom: 24px; }
+
+  .panel { background: #FFFFFF; border: 1px solid var(--line); border-radius: 14px; padding: 22px 24px; }
+  .panel-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .panel-title { font-size: 15.5px; font-weight: 600; color: var(--ink-900); letter-spacing: -0.005em; }
+  .panel-sub { font-size: 12px; color: var(--ink-500); }
+
+  /* Heatmap */
+  .heatmap-wrap { overflow-x: auto; padding-bottom: 6px; }
+  .heatmap { display: inline-grid; grid-auto-flow: column; grid-template-rows: repeat(7, 11px); gap: 3px; padding: 4px 0; }
+  .hm-cell { width: 11px; height: 11px; border-radius: 2.5px; background: #F1EEE8; }
+  .hm-1 { background: #FEF3C7; }
+  .hm-2 { background: #FDE68A; }
+  .hm-3 { background: #F59E0B; }
+  .hm-4 { background: #B45309; }
+  .hm-legend { display: flex; align-items: center; gap: 5px; font-size: 11.5px; color: var(--ink-500); justify-content: flex-end; margin-top: 8px; }
+  .hm-legend .box { width: 11px; height: 11px; border-radius: 2.5px; }
+  .hm-months { display: flex; gap: 14px; font-size: 10.5px; color: var(--ink-500); margin-bottom: 6px; padding-left: 20px; }
+  .hm-row-wrap { display: flex; align-items: center; gap: 6px; }
+  .hm-day-labels { display: grid; grid-template-rows: repeat(7, 11px); gap: 3px; font-size: 9.5px; color: var(--ink-400); font-family: "JetBrains Mono", monospace; line-height: 11px; }
+
+  /* Two-column panels */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 18px; }
+
+  /* Donut + mastery */
+  .donut-wrap { display: flex; align-items: center; gap: 28px; }
+  .donut { width: 160px; height: 160px; border-radius: 50%; position: relative; flex-shrink: 0; background: conic-gradient(#E7E5E4 0 23.3%, #FFFFFF 23.3% 23.8%, #FBBF24 23.8% 59.1%, #FFFFFF 59.1% 59.6%, #60A5FA 59.6% 87.6%, #FFFFFF 87.6% 88.1%, #4ADE80 88.1% 99.5%, #FFFFFF 99.5% 100%); }
+  .donut::before { content: ""; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 108px; height: 108px; border-radius: 50%; background: #FFFFFF; box-shadow: inset 0 0 0 1px var(--line-soft); }
+  .donut .cx { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); text-align: center; z-index: 1; }
+  .donut .cx .big { font-family: "Instrument Serif", serif; font-size: 44px; font-weight: 400; color: var(--ink-900); line-height: 1; letter-spacing: -0.02em; }
+  .donut .cx .lbl { font-size: 10.5px; color: var(--ink-400); margin-top: 4px; letter-spacing: 0.06em; text-transform: uppercase; }
+  .legend-list { flex: 1; font-size: 13px; }
+  .legend-list .row { display: flex; align-items: center; gap: 12px; padding: 8px 0; }
+  .legend-list .dot { width: 10px; height: 10px; border-radius: 999px; flex-shrink: 0; }
+  .legend-list .name { flex: 1; color: var(--ink-700); }
+  .legend-list .count { font-family: "JetBrains Mono", monospace; font-size: 12.5px; color: var(--ink-900); font-weight: 600; }
+  .legend-list .pct { font-size: 11.5px; color: var(--ink-500); margin-left: 8px; min-width: 36px; text-align: right; }
+
+  /* Radar */
+  .radar-wrap { display: flex; justify-content: center; align-items: center; padding: 10px 0; }
+  .radar { width: 280px; height: 260px; }
+
+  /* Today review */
+  .review-card { background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%); border: 1px solid #FDE68A; border-radius: 14px; padding: 28px 32px; }
+  .review-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .review-progress { height: 6px; background: rgba(180,83,9,0.15); border-radius: 999px; overflow: hidden; margin-bottom: 24px; }
+  .review-progress .fill { height: 100%; width: 33.3%; background: var(--brand); border-radius: 999px; }
+  .review-q { font-size: 20px; font-weight: 600; color: var(--ink-900); margin-bottom: 10px; letter-spacing: -0.01em; }
+  .review-hint { font-size: 13.5px; color: #92400E; margin-bottom: 20px; }
+  .review-actions { display: flex; gap: 10px; }
+  .review-btn { flex: 1; padding: 12px 18px; border-radius: 10px; border: 1.5px solid; background: #FFFFFF; font-family: inherit; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; gap: 6px; }
+  .review-btn:hover { transform: translateY(-1px); }
+  .review-btn.blur { border-color: #D6D3D1; color: var(--ink-700); }
+  .review-btn.blur:hover { background: var(--soft); }
+  .review-btn.know { border-color: #60A5FA; color: #1D4ED8; }
+  .review-btn.know:hover { background: #DBEAFE; }
+  .review-btn.master { border-color: #86EFAC; color: #15803D; }
+  .review-btn.master:hover { background: #DCFCE7; }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="01-home.html" class="logo">
+      <div class="logo-mark"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 016.5 2H20v20H6.5a2.5 2.5 0 010-5H20"/></svg></div>
+      <span class="logo-text">DevMind</span>
+    </a>
+    <div class="search-box">
+      <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+      <input type="text" placeholder="搜索卡片、标签、作者...">
+      <div class="kbd-hint"><kbd>⌘K</kbd></div>
+    </div>
+    <nav class="nav">
+      <a href="01-home.html">首页</a>
+      <a href="03-workspace.html">工作台</a>
+      <a href="04-dashboard.html" class="active">仪表盘</a>
+    </nav>
+    <div class="avatar">IV</div>
+  </div>
+</header>
+
+<div class="container page-body">
+
+  <div class="dash-head">
+    <div>
+      <div class="dash-title">你的学习仪表盘</div>
+      <div class="dash-sub">Ivonna · 今天记一点，明天少一点。</div>
+    </div>
+    
+  </div>
+
+  <!-- 统计卡 -->
+  <div class="stats-grid">
+    <div class="stat">
+      <div class="label">📝 卡片总数</div>
+      <div class="value">42</div>
+      
+    </div>
+    <div class="stat">
+      <div class="label">❤ 获得点赞</div>
+      <div class="value">128</div>
+      
+    </div>
+    <div class="stat">
+      <div class="label">☆ 被收藏</div>
+      <div class="value">34</div>
+      
+    </div>
+    <div class="stat">
+      <div class="label">✓ 已掌握</div>
+      <div class="value">5</div>
+      
+    </div>
+  </div>
+
+  <!-- 热力图 -->
+  <div class="panel">
+    <div class="panel-head">
+      <div>
+        <div class="panel-title">学习热力图</div>
+        <div class="panel-sub">过去 12 个月的学习活动 · 共 <strong>167</strong> 天打卡</div>
+      </div>
+      <div class="hm-legend">
+        <span>少</span>
+        <span class="box" style="background:#F1EEE8;"></span>
+        <span class="box hm-1"></span>
+        <span class="box hm-2"></span>
+        <span class="box hm-3"></span>
+        <span class="box hm-4"></span>
+        <span>多</span>
+      </div>
+    </div>
+
+    <div class="hm-months"><span style="margin-left: 0;">5月</span><span>6月</span><span>7月</span><span>8月</span><span style="margin-left: 22px;">9月</span><span>10月</span><span style="margin-left: 22px;">11月</span><span>12月</span><span style="margin-left: 22px;">1月</span><span>2月</span><span style="margin-left: 22px;">3月</span><span>4月</span></div>
+
+    <div class="hm-row-wrap">
+      <div class="hm-day-labels">
+        <span></span><span>Mon</span><span></span><span>Wed</span><span></span><span>Fri</span><span></span>
+      </div>
+      <div class="heatmap-wrap">
+        <div class="heatmap" id="heatmap"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <!-- 掌握度分布 -->
+    <div class="panel">
+      <div class="panel-head">
+        <div>
+          <div class="panel-title">掌握度分布</div>
+          <div class="panel-sub">42 张卡片的记忆状态</div>
+        </div>
+      </div>
+      <div class="donut-wrap">
+        <div class="donut">
+          <div class="cx">
+            <div class="big">42</div>
+            <div class="lbl">总卡片</div>
+          </div>
+        </div>
+        <div class="legend-list">
+          <div class="row">
+            <span class="dot" style="background:#E7E5E4;"></span>
+            <span class="name">新建</span>
+            <span class="count">10</span><span class="pct">23.8%</span>
+          </div>
+          <div class="row">
+            <span class="dot" style="background:#FBBF24;"></span>
+            <span class="name">模糊</span>
+            <span class="count">15</span><span class="pct">35.7%</span>
+          </div>
+          <div class="row">
+            <span class="dot" style="background:#60A5FA;"></span>
+            <span class="name">记得</span>
+            <span class="count">12</span><span class="pct">28.6%</span>
+          </div>
+          <div class="row">
+            <span class="dot" style="background:#4ADE80;"></span>
+            <span class="name">已掌握</span>
+            <span class="count">5</span><span class="pct">11.9%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 标签雷达 -->
+    <div class="panel">
+      <div class="panel-head">
+        <div>
+          <div class="panel-title">技能雷达</div>
+          <div class="panel-sub">按标签分布的卡片数量</div>
+        </div>
+      </div>
+      <div class="radar-wrap">
+        <svg class="radar" viewBox="-120 -115 240 230">
+          <g fill="none" stroke="#E7E5E4" stroke-width="1">
+            <polygon points="0,-20 17.32,-10 17.32,10 0,20 -17.32,10 -17.32,-10" />
+            <polygon points="0,-40 34.64,-20 34.64,20 0,40 -34.64,20 -34.64,-20" />
+            <polygon points="0,-60 51.96,-30 51.96,30 0,60 -51.96,30 -51.96,-30" />
+            <polygon points="0,-80 69.28,-40 69.28,40 0,80 -69.28,40 -69.28,-40" />
+            <polygon points="0,-100 86.60,-50 86.60,50 0,100 -86.60,50 -86.60,-50" />
+          </g>
+          <g stroke="#E7E5E4" stroke-width="1">
+            <line x1="0" y1="0" x2="0" y2="-100" />
+            <line x1="0" y1="0" x2="86.60" y2="-50" />
+            <line x1="0" y1="0" x2="86.60" y2="50" />
+            <line x1="0" y1="0" x2="0" y2="100" />
+            <line x1="0" y1="0" x2="-86.60" y2="50" />
+            <line x1="0" y1="0" x2="-86.60" y2="-50" />
+          </g>
+          <polygon points="0,-95 60.62,-35 51.96,30 0,80 -73.61,42.5 -56.29,-32.5" fill="rgba(180,83,9,0.18)" stroke="#B45309" stroke-width="1.5" stroke-linejoin="round" />
+          <g fill="#B45309">
+            <circle cx="0" cy="-95" r="3.5" />
+            <circle cx="60.62" cy="-35" r="3.5" />
+            <circle cx="51.96" cy="30" r="3.5" />
+            <circle cx="0" cy="80" r="3.5" />
+            <circle cx="-73.61" cy="42.5" r="3.5" />
+            <circle cx="-56.29" cy="-32.5" r="3.5" />
+          </g>
+          <g font-size="11" font-weight="500" fill="#44403C" text-anchor="middle" font-family="Inter, sans-serif">
+            <text x="0" y="-108">JavaScript</text>
+            <text x="104" y="-52">Vue 3</text>
+            <text x="104" y="55">CSS</text>
+            <text x="0" y="114">PostgreSQL</text>
+            <text x="-104" y="55">Git</text>
+            <text x="-104" y="-52">TypeScript</text>
+          </g>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- 今日复习 -->
+  <div style="margin-top: 24px;">
+    <div class="panel-head" style="margin-bottom: 14px;">
+      <div>
+        <div class="panel-title" style="font-size: 19px;">🔥 今日复习</div>
+        <div class="panel-sub">遗忘曲线推荐给你 · 3 张卡片</div>
+      </div>
+    </div>
+    <div class="review-card">
+      <div class="review-head">
+        <span class="chip chip-amber">💡 面试题 · 中等</span>
+        <span style="font-size: 13px; color: #92400E; font-weight: 500;">进度 1 / 3</span>
+      </div>
+      <div class="review-progress"><div class="fill"></div></div>
+      <div class="review-q">JavaScript 中什么是闭包？</div>
+      <div class="review-hint">请先回忆知识点，再选择你的掌握程度：</div>
+      <div class="review-actions">
+        <button class="review-btn blur">模糊</button>
+        <button class="review-btn know">记得</button>
+        <button class="review-btn master">已掌握</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // 填充热力图：生成 371 天的伪随机打卡数据
+  function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return ((t^t>>>14)>>>0)/4294967296}}
+  var rand = mulberry32(17);
+  var grid = document.getElementById('heatmap');
+  for (var i = 0; i < 371; i++) {
+    var r = rand();
+    var v = 0;
+    if (r > 0.55) v = 1;
+    if (r > 0.75) v = 2;
+    if (r > 0.88) v = 3;
+    if (r > 0.96) v = 4;
+    var cell = document.createElement('div');
+    cell.className = 'hm-cell' + (v ? ' hm-' + v : '');
+    grid.appendChild(cell);
+  }
+</script>
+
+</body>
+</html>

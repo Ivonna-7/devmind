@@ -1,0 +1,236 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>DevMind · 个人主页</title>
+<link rel="stylesheet" href="tokens.css">
+<style>
+  .cover { height: 180px; background: linear-gradient(120deg, #FEF3C7 0%, #FDE68A 35%, #FCD34D 70%, #F59E0B 100%); position: relative; border-radius: 0 0 20px 20px; overflow: hidden; margin: 0 auto; max-width: 1280px; }
+  .cover::before { content: ""; position: absolute; inset: 0; background-image: radial-gradient(circle at 20% 30%, rgba(255,255,255,0.5), transparent 40%), radial-gradient(circle at 80% 70%, rgba(180,83,9,0.25), transparent 50%); }
+  .cover-decor { position: absolute; font-size: 60px; opacity: 0.2; }
+
+  .profile-hero { max-width: 1280px; margin: 0 auto; padding: 0 32px; position: relative; margin-top: -56px; margin-bottom: 32px; }
+  .profile-card { background: #FFFFFF; border: 1px solid var(--line); border-radius: 16px; padding: 28px 32px; box-shadow: 0 4px 20px rgba(0,0,0,0.04); display: flex; align-items: flex-end; gap: 28px; }
+  .big-avatar { width: 110px; height: 110px; border-radius: 50%; background: linear-gradient(135deg, var(--brand), var(--brand-deep)); color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-family: "Instrument Serif", serif; font-weight: 700; font-size: 42px; border: 5px solid #FFFFFF; box-shadow: 0 4px 12px rgba(0,0,0,0.08); flex-shrink: 0; margin-top: -50px; }
+
+  .profile-main { flex: 1; }
+  .profile-name { font-family: "Instrument Serif", serif; font-size: 30px; font-weight: 700; line-height: 1.1; letter-spacing: -0.01em; }
+  .profile-handle { font-family: "JetBrains Mono", monospace; font-size: 13.5px; color: var(--ink-500); margin: 4px 0 10px; }
+  .profile-bio { font-size: 14.5px; color: var(--ink-700); line-height: 1.6; max-width: 580px; }
+  .profile-links { display: flex; gap: 16px; margin-top: 12px; font-size: 13px; color: var(--ink-500); }
+  .profile-links a { display: inline-flex; align-items: center; gap: 5px; }
+  .profile-links a:hover { color: var(--brand); }
+
+  .profile-stats { display: flex; gap: 28px; padding: 16px 0; border-top: 1px solid var(--line-soft); margin-top: 18px; }
+  .profile-stats .s .v { font-family: "Instrument Serif", serif; font-size: 26px; font-weight: 700; color: var(--ink-900); line-height: 1; }
+  .profile-stats .s .l { font-size: 12px; color: var(--ink-500); margin-top: 4px; }
+
+  .profile-actions { display: flex; gap: 8px; align-self: flex-start; margin-top: 4px; }
+
+  /* Tag cloud (字号随频率) */
+  .tag-cloud-big { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; }
+  .tag-cloud-big a { cursor: pointer; transition: all 0.15s; padding: 4px 12px; border-radius: 999px; border: 1px solid var(--line); background: #FFFFFF; color: var(--ink-700); display: inline-flex; align-items: center; gap: 4px; }
+  .tag-cloud-big a:hover { background: var(--brand-soft); border-color: #FDE68A; color: var(--brand); transform: translateY(-1px); }
+  .tag-cloud-big a .n { font-family: "JetBrains Mono", monospace; font-size: 10.5px; color: var(--ink-400); }
+  .tag-cloud-big a.xl { font-size: 19px; font-weight: 700; padding: 5px 16px; letter-spacing: -0.01em; }
+  .tag-cloud-big a.l  { font-size: 15.5px; font-weight: 600; padding: 5px 14px; letter-spacing: -0.005em; }
+  .tag-cloud-big a.m  { font-size: 15px; font-weight: 500; }
+  .tag-cloud-big a.s  { font-size: 13px; }
+  .tag-cloud-big a.xs { font-size: 12px; color: var(--ink-500); }
+
+  /* Tabs */
+  .section-tabs { display: flex; align-items: center; gap: 4px; border-bottom: 1px solid var(--line); margin: 32px 0 22px; }
+  .section-tab { padding: 10px 14px; font-size: 14px; font-weight: 500; color: var(--ink-500); cursor: pointer; position: relative; background: transparent; border: 0; font-family: inherit; }
+  .section-tab:hover { color: var(--ink-900); }
+  .section-tab.active { color: var(--ink-900); }
+  .section-tab.active::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: var(--brand); border-radius: 2px; }
+  .section-tab .c { display: inline-block; margin-left: 5px; font-family: "JetBrains Mono", monospace; font-size: 11.5px; color: var(--ink-400); background: var(--soft); padding: 1px 6px; border-radius: 999px; }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="bar">
+    <a href="01-home.html" class="logo">
+      <div class="logo-mark"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 016.5 2H20v20H6.5a2.5 2.5 0 010-5H20"/></svg></div>
+      <span class="logo-text">DevMind</span>
+    </a>
+    <div class="search-box">
+      <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+      <input type="text" placeholder="搜索卡片、标签、作者...">
+      <div class="kbd-hint"><kbd>⌘K</kbd></div>
+    </div>
+    <nav class="nav">
+      <a href="01-home.html">首页</a>
+      <a href="03-workspace.html">工作台</a>
+      <a href="04-dashboard.html">仪表盘</a>
+    </nav>
+    <div class="avatar">IV</div>
+  </div>
+</header>
+
+<!-- Cover -->
+<div class="cover">
+  <span class="cover-decor" style="top: 24px; left: 40px;">📚</span>
+  <span class="cover-decor" style="top: 50px; right: 120px; font-size: 40px;">✦</span>
+  <span class="cover-decor" style="bottom: 30px; right: 40px;">💡</span>
+  <span class="cover-decor" style="bottom: 20px; left: 200px; font-size: 34px;">✨</span>
+</div>
+
+<!-- Hero -->
+<div class="profile-hero">
+  <div class="profile-card">
+    <div class="big-avatar">ZS</div>
+    <div class="profile-main">
+      <h1 class="profile-name">张三</h1>
+      <div class="profile-handle">@zhangsan</div>
+      <p class="profile-bio">前端工程师 · Vue / TypeScript。相信「输出倒逼输入」——在 DevMind 记录每一次顿悟、每一个坑。</p>
+      <div class="profile-stats">
+        <div class="s"><div class="v">42</div><div class="l">张公开卡片</div></div>
+      </div>
+    </div>
+    <!-- 自己看自己的主页才出现此按钮（前端通过 currentUser.id === profileId 判断） -->
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- 标签云 -->
+  <section>
+    <div class="panel-head" style="margin-bottom: 14px;">
+      <div>
+        <div class="panel-title" style="font-family: 'Instrument Serif', serif; font-size: 18px; font-weight: 600;">知识标签云</div>
+        <div class="panel-sub" style="font-size: 13px; color: var(--ink-500);">字号越大，涉及越多 · 点击查看该标签下的卡片</div>
+      </div>
+    </div>
+    <div class="panel" style="padding: 24px 28px;">
+      <div class="tag-cloud-big">
+        <a class="xl">JavaScript<span class="n">32</span></a>
+        <a class="l">Vue 3<span class="n">24</span></a>
+        <a class="l">TypeScript<span class="n">21</span></a>
+        <a class="m">CSS<span class="n">16</span></a>
+        <a class="m">React<span class="n">14</span></a>
+        <a class="m">Node.js<span class="n">12</span></a>
+        <a class="s">PostgreSQL<span class="n">9</span></a>
+        <a class="s">Git<span class="n">8</span></a>
+        <a class="s">性能优化<span class="n">7</span></a>
+        <a class="s">HTTP<span class="n">6</span></a>
+        <a class="xs">Rust<span class="n">4</span></a>
+        <a class="xs">Docker<span class="n">3</span></a>
+        <a class="xs">面试<span class="n">3</span></a>
+        <a class="xs">算法<span class="n">2</span></a>
+        <a class="xs">设计模式<span class="n">2</span></a>
+        <a class="xs">Nginx<span class="n">1</span></a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Tabs -->
+  <div class="section-tabs">
+    <button class="section-tab active">公开卡片 <span class="c">42</span></button>
+    <button class="section-tab">收藏的卡片 <span class="c">18</span></button>
+  </div>
+
+  <!-- 卡片瀑布流 -->
+  <div class="masonry">
+
+    <article class="card">
+      <span class="tape tape-amber">💡 面试题 · 中等</span>
+      <h3 class="card-title">JavaScript 闭包的原理与常见陷阱</h3>
+      <p class="card-summary">闭包是函数与其词法环境的组合。内部函数引用外部作用域的变量时，这些变量会被"闭包"起来...</p>
+      <div class="code-snippet" style="margin-top: 12px;"><span class="tk-key">function</span> <span class="tk-fn">outer</span>() {<br>&nbsp;&nbsp;<span class="tk-key">let</span> count = <span class="tk-num">0</span>;<br>&nbsp;&nbsp;<span class="tk-key">return</span> () =&gt; ++count;<br>}</div>
+      <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px;">
+        <span class="chip">JavaScript</span><span class="chip">闭包</span><span class="chip">面试</span>
+      </div>
+      <div class="card-meta">
+        <span>2 小时前</span>
+        <span>❤ 24 · ☆ 12</span>
+      </div>
+    </article>
+
+    <article class="card">
+      <span class="tape tape-blue">📝 笔记</span>
+      <h3 class="card-title">Vue 3 ref 和 reactive 的深度对比</h3>
+      <p class="card-summary">ref 本质是 reactive 包装一个 <code class="no-bg" style="font-family:'JetBrains Mono',monospace;background:#F5F0E8;padding:1px 5px;border-radius:4px;font-size:12.5px;">{ value }</code> 对象。</p>
+      <ul style="margin: 12px 0 0; padding-left: 20px; font-size: 13px; color: var(--ink-700); line-height: 1.7;">
+        <li><strong>ref</strong>：基本类型，模板自动 unwrap</li>
+        <li><strong>reactive</strong>：对象，解构失去响应</li>
+        <li><strong>shallowRef</strong>：嵌套不追踪</li>
+      </ul>
+      <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px;">
+        <span class="chip chip-blue">Vue 3</span><span class="chip chip-blue">响应式</span>
+      </div>
+      <div class="card-meta">
+        <span>2 天前</span>
+        <span>❤ 67 · ☆ 34</span>
+      </div>
+    </article>
+
+    <article class="card">
+      <span class="tape tape-red">🐛 Bug 日记</span>
+      <h3 class="card-title">Webpack 5 持久化缓存导致的诡异 stale</h3>
+      <p class="card-summary">一个同事改了 <code class="no-bg" style="font-family:'JetBrains Mono',monospace;background:#F5F0E8;padding:1px 5px;border-radius:4px;font-size:12.5px;">node_modules</code> 里的一个文件，我本地 build 怎么改都不变...</p>
+      <blockquote style="margin: 12px 0 0; padding-left: 12px; border-left: 3px solid #B91C1C; font-size: 12.5px; color: var(--ink-500); font-style: italic;">教训：cache.buildDependencies 要包含 config 文件自身。</blockquote>
+      <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px;">
+        <span class="chip chip-red">Webpack</span><span class="chip">缓存</span>
+      </div>
+      <div class="card-meta">
+        <span>1 周前</span>
+        <span>❤ 38 · ☆ 22</span>
+      </div>
+    </article>
+
+    <article class="card">
+      <span class="tape tape-green">✨ TIL</span>
+      <h3 class="card-title">CSS <code class="no-bg" style="font-family:'JetBrains Mono',monospace;font-size:17px;">:has()</code> 全浏览器可用了</h3>
+      <p class="card-summary">从 2023 年 12 月起，所有主流浏览器都支持。可以基于子元素选父元素。</p>
+      <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px;">
+        <span class="chip chip-green">CSS</span><span class="chip chip-green">选择器</span>
+      </div>
+      <div class="card-meta">
+        <span>3 天前</span>
+        <span>❤ 89 · ☆ 56</span>
+      </div>
+    </article>
+
+    <article class="card">
+      <span class="tape tape-amber">💡 面试题 · 困难</span>
+      <h3 class="card-title">React Fiber 调度的核心机制</h3>
+      <p class="card-summary">Fiber 把虚拟 DOM 的更新从"递归同步"变成"链表异步"。可中断、可恢复、可优先级调度。</p>
+      <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px;">
+        <span class="chip chip-amber">React</span><span class="chip chip-amber">Fiber</span><span class="chip">源码</span>
+      </div>
+      <div class="card-meta">
+        <span>4 天前</span>
+        <span>❤ 156 · ☆ 102</span>
+      </div>
+    </article>
+
+    <article class="card">
+      <span class="tape tape-blue">📝 笔记</span>
+      <h3 class="card-title">PostgreSQL 索引选择的 5 条经验</h3>
+      <p class="card-summary">基于一年 300+ 次慢查询优化的总结。</p>
+      <ol style="margin: 12px 0 0; padding-left: 20px; font-size: 13px; color: var(--ink-700); line-height: 1.7;">
+        <li>WHERE 列放前，ORDER BY 列放后</li>
+        <li>选择率 &lt; 3% 才值得建索引</li>
+        <li>EXPLAIN ANALYZE 是你最好的朋友</li>
+      </ol>
+      <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px;">
+        <span class="chip chip-blue">PostgreSQL</span><span class="chip chip-blue">索引</span>
+      </div>
+      <div class="card-meta">
+        <span>1 周前</span>
+        <span>❤ 94 · ☆ 67</span>
+      </div>
+    </article>
+
+  </div>
+
+</div>
+
+<footer style="max-width: 1280px; margin: 60px auto 0; padding: 40px 32px; border-top: 1px solid var(--line); text-align: center; font-size: 13px; color: var(--ink-500);">
+  <p>Made with <span style="color: var(--brand);">🤎</span> by DevMind · 记录即创造</p>
+</footer>
+
+</body>
+</html>

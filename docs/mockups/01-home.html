@@ -1,0 +1,308 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>DevMind · 首页</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Noto+Serif+SC:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #FAF7F2;
+  --card: #FFFFFF;
+  --soft: #F5F0E8;
+  --ink-900: #1C1917;
+  --ink-700: #44403C;
+  --ink-500: #78716C;
+  --line: #E7E5E4;
+  --brand: #B45309;
+}
+html, body {
+  background: var(--bg);
+  color: var(--ink-900);
+  font-family: 'Inter', -apple-system, 'PingFang SC', 'HarmonyOS Sans SC', 'Hiragino Sans GB', 'Noto Sans SC', 'Microsoft YaHei', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+.font-serif-display { font-family: 'Instrument Serif', 'Noto Serif SC', Georgia, serif; font-style: normal; letter-spacing: -0.005em; }
+.font-mono { font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace; }
+
+.tape {
+  position: absolute;
+  top: -9px;
+  left: 18px;
+  padding: 3px 11px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  transform: rotate(-2deg);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  border-radius: 3px;
+}
+.card {
+  position: relative;
+  background: #FFFFFF;
+  border-radius: 14px;
+  padding: 22px 22px 18px;
+  border: 1px solid rgba(231, 229, 228, 0.6);
+  box-shadow: 0 1px 2px rgba(28,25,23,0.035), 0 4px 14px rgba(28,25,23,0.045);
+  transition: all 0.2s ease;
+}
+.card:hover {
+  box-shadow: 0 4px 14px rgba(28,25,23,0.08), 0 10px 28px rgba(28,25,23,0.06);
+  transform: translateY(-2px);
+}
+
+.masonry { column-count: 3; column-gap: 22px; }
+.masonry > * { break-inside: avoid; margin-bottom: 22px; }
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px solid var(--line);
+  background: #FFFFFF;
+  color: var(--ink-700);
+}
+.chip-amber { background: #FEF3C7; border-color: #FDE68A; color: #92400E; }
+.chip-blue  { background: #E0F2FE; border-color: #BAE6FD; color: #075985; }
+.chip-green { background: #DCFCE7; border-color: #BBF7D0; color: #166534; }
+.chip-red   { background: #FEE2E2; border-color: #FECACA; color: #991B1B; }
+
+.code-snippet {
+  background: #292524;
+  color: #FAF7F2;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  border-radius: 8px;
+  padding: 12px 14px;
+  line-height: 1.7;
+  overflow: hidden;
+}
+.tk-key { color: #FCD34D; }
+.tk-str { color: #86EFAC; }
+.tk-fn  { color: #93C5FD; }
+.tk-com { color: #A8A29E; font-style: italic; }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="sticky top-0 z-40 backdrop-blur bg-[#FAF7F2]/90 border-b border-[#E7E5E4]">
+  <div class="max-w-[1280px] mx-auto flex items-center gap-6 px-8 h-[64px]">
+    <a href="#" class="flex items-center gap-2.5">
+      <div class="w-8 h-8 rounded-[9px] bg-[#B45309] flex items-center justify-center text-white" style="box-shadow: 0 1px 3px rgba(180,83,9,0.35);">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 016.5 2H20v20H6.5a2.5 2.5 0 010-5H20"/></svg>
+      </div>
+      <span class="font-serif-display text-[22px] font-semibold tracking-tight">DevMind</span>
+    </a>
+
+    <div class="flex-1 max-w-xl ml-4">
+      <div class="relative">
+        <svg class="absolute left-3 top-1/2 -translate-y-1/2 text-[#A8A29E]" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <input type="text" placeholder="搜索卡片、标签、作者..." class="w-full bg-white border border-[#E7E5E4] rounded-xl pl-10 pr-16 h-10 text-sm focus:outline-none placeholder:text-[#A8A29E]">
+        <div class="absolute right-3 top-1/2 -translate-y-1/2">
+          <kbd class="px-1.5 py-0.5 rounded text-[11px] font-mono bg-[#F5F0E8] text-[#78716C] border border-[#E7E5E4]">⌘K</kbd>
+        </div>
+      </div>
+    </div>
+
+    <nav class="flex items-center gap-6 text-[14px] font-medium text-[#44403C]">
+      <a href="#" class="text-[#1C1917] font-semibold relative">首页<span class="absolute -bottom-[22px] left-0 right-0 h-0.5 bg-[#B45309] rounded-full"></span></a>
+      <a href="#" class="hover:text-[#B45309]">工作台</a>
+      <a href="#" class="hover:text-[#B45309]">仪表盘</a>
+    </nav>
+
+    <div class="w-9 h-9 rounded-full bg-gradient-to-br from-[#B45309] to-[#78350F] flex items-center justify-center text-white font-semibold text-[13px]" style="box-shadow: 0 1px 3px rgba(180,83,9,0.3);">IV</div>
+  </div>
+</header>
+
+<!-- Hero -->
+<section class="max-w-[1280px] mx-auto px-8 pt-14 pb-10">
+  <div class="flex items-end justify-between gap-12">
+    <div>
+      <h1 class="font-serif-display text-[56px] font-semibold leading-[1.05] tracking-tight text-[#1C1917]">
+        你的知识，<br>成册成<em class="text-[#B45309] not-italic">篇</em>。
+      </h1>
+      <p class="mt-5 text-[#57534E] text-[15.5px] leading-relaxed max-w-xl">
+        开发者的知识卡片社区。记录笔记、沉淀面经、复盘 Bug、分享顿悟——像便签纸一样轻，像图书馆一样整。
+      </p>
+      
+    </div>
+    <div class="hidden lg:block shrink-0">
+      <svg width="220" height="170" viewBox="0 0 220 170" fill="none">
+        <rect x="30" y="80" width="120" height="80" rx="7" fill="#FDE68A" stroke="#B45309" stroke-width="1.5" transform="rotate(-5 90 120)"/>
+        <line x1="48" y1="100" x2="130" y2="100" stroke="#B45309" stroke-width="1" opacity="0.35" transform="rotate(-5 90 120)"/>
+        <line x1="48" y1="112" x2="115" y2="112" stroke="#B45309" stroke-width="1" opacity="0.35" transform="rotate(-5 90 120)"/>
+        <rect x="70" y="55" width="120" height="90" rx="7" fill="#FFFFFF" stroke="#15803D" stroke-width="1.5" transform="rotate(3 130 100)"/>
+        <line x1="88" y1="78" x2="175" y2="78" stroke="#15803D" stroke-width="1" opacity="0.3" transform="rotate(3 130 100)"/>
+        <line x1="88" y1="92" x2="160" y2="92" stroke="#15803D" stroke-width="1" opacity="0.3" transform="rotate(3 130 100)"/>
+        <line x1="88" y1="106" x2="170" y2="106" stroke="#15803D" stroke-width="1" opacity="0.3" transform="rotate(3 130 100)"/>
+        <rect x="50" y="30" width="120" height="85" rx="7" fill="#FEE2E2" stroke="#B91C1C" stroke-width="1.5" transform="rotate(-2 110 72)"/>
+        <line x1="68" y1="55" x2="150" y2="55" stroke="#B91C1C" stroke-width="1" opacity="0.3" transform="rotate(-2 110 72)"/>
+        <line x1="68" y1="68" x2="140" y2="68" stroke="#B91C1C" stroke-width="1" opacity="0.3" transform="rotate(-2 110 72)"/>
+        <line x1="68" y1="81" x2="145" y2="81" stroke="#B91C1C" stroke-width="1" opacity="0.3" transform="rotate(-2 110 72)"/>
+        <text x="195" y="45" font-size="18" fill="#B45309">✦</text>
+        <text x="10" y="110" font-size="14" fill="#15803D">✦</text>
+        <text x="200" y="150" font-size="12" fill="#B91C1C">✦</text>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- Filter Bar -->
+<section class="max-w-[1280px] mx-auto px-8 py-3.5 border-y border-[#E7E5E4] bg-[#FAF7F2]/95 backdrop-blur sticky top-[64px] z-30">
+  <div class="flex items-center justify-between">
+    <div class="flex items-center gap-1">
+      <button class="px-3.5 py-1.5 rounded-lg bg-[#1C1917] text-white text-[13.5px] font-medium">全部</button>
+      <button class="px-3.5 py-1.5 rounded-lg hover:bg-[#F5F0E8] text-[13.5px] text-[#44403C]">📝 笔记</button>
+      <button class="px-3.5 py-1.5 rounded-lg hover:bg-[#F5F0E8] text-[13.5px] text-[#44403C]">💡 面试题</button>
+      <button class="px-3.5 py-1.5 rounded-lg hover:bg-[#F5F0E8] text-[13.5px] text-[#44403C]">🐛 Bug 日记</button>
+      <button class="px-3.5 py-1.5 rounded-lg hover:bg-[#F5F0E8] text-[13.5px] text-[#44403C]">✨ TIL</button>
+    </div>
+    <div class="flex items-center gap-2.5 text-[13px] text-[#44403C]">
+      <span class="text-[#78716C]">排序</span>
+      <select class="bg-white border border-[#E7E5E4] rounded-lg px-3 py-1.5 text-[13px]">
+        <option value="default">最新</option><option value="most_liked">最热</option>
+      </select>
+    </div>
+  </div>
+</section>
+
+<!-- Cards -->
+<main class="max-w-[1280px] mx-auto px-8 py-10">
+  <div class="masonry">
+
+    <article class="card">
+      <span class="tape" style="background:#FEF3C7;color:#92400E;border:1px solid #FDE68A;">💡 面试题 · 中等</span>
+      <h3 class="text-[17px] font-semibold leading-snug mt-3 mb-2 tracking-tight text-[#1C1917]">JavaScript 闭包的原理与常见陷阱</h3>
+      <p class="text-[13.5px] text-[#44403C] leading-relaxed">闭包是函数与其词法环境的组合。内部函数引用外部作用域的变量时，这些变量会被"闭包"起来...</p>
+      <div class="code-snippet mt-3"><span class="tk-key">function</span> <span class="tk-fn">outer</span>() {<br>&nbsp;&nbsp;<span class="tk-key">let</span> count = <span class="tk-str">0</span>;<br>&nbsp;&nbsp;<span class="tk-key">return</span> () =&gt; ++count;<br>}</div>
+      <div class="flex flex-wrap gap-1.5 mt-3.5">
+        <span class="chip">JavaScript</span><span class="chip">闭包</span><span class="chip">面试</span>
+      </div>
+      <div class="flex items-center justify-between mt-4 pt-3.5 border-t border-[#F1EEE8] text-[12px] text-[#78716C]">
+        <span class="flex items-center gap-2"><span class="w-5 h-5 rounded-full bg-gradient-to-br from-blue-400 to-blue-600"></span>张三 · 2 小时前</span>
+        <span class="flex items-center gap-3"><span>❤ 24</span><span>☆ 12</span></span>
+      </div>
+    </article>
+
+    <article class="card">
+      <span class="tape" style="background:#FEE2E2;color:#991B1B;border:1px solid #FECACA;">🐛 Bug 日记</span>
+      <h3 class="text-[17px] font-semibold leading-snug mt-3 mb-2 tracking-tight text-[#1C1917]">Supabase RLS 让我调试了 3 小时</h3>
+      <p class="text-[13.5px] text-[#44403C] leading-relaxed">同样的 query 在 SQL Editor 能跑通，但 JS SDK 返回空。最后发现是 policy 里 <code class="font-mono text-[12.5px] bg-[#F5F0E8] px-1 rounded">auth.uid()</code> 的 USING 和 WITH CHECK 要分开写...</p>
+      <blockquote class="mt-3 border-l-[3px] border-[#B91C1C] pl-3 text-[12.5px] text-[#78716C] italic leading-relaxed">教训：RLS 启用后 service_role 绕过 policy，但 anon 和 authenticated 都要明确授权。</blockquote>
+      <div class="flex flex-wrap gap-1.5 mt-3.5">
+        <span class="chip chip-red">Supabase</span><span class="chip chip-red">RLS</span><span class="chip">PostgreSQL</span>
+      </div>
+      <div class="flex items-center justify-between mt-4 pt-3.5 border-t border-[#F1EEE8] text-[12px] text-[#78716C]">
+        <span class="flex items-center gap-2"><span class="w-5 h-5 rounded-full bg-gradient-to-br from-orange-400 to-red-500"></span>ivonna · 5 小时前</span>
+        <span class="flex items-center gap-3"><span>❤ 42</span><span>☆ 18</span></span>
+      </div>
+    </article>
+
+    <article class="card">
+      <span class="tape" style="background:#DCFCE7;color:#166534;border:1px solid #BBF7D0;">✨ TIL</span>
+      <h3 class="text-[17px] font-semibold leading-snug mt-3 mb-2 tracking-tight text-[#1C1917]">CSS <code class="font-mono text-[17px]">:has()</code> 全浏览器可用了</h3>
+      <p class="text-[13.5px] text-[#44403C] leading-relaxed">从 2023 年 12 月起，所有主流浏览器都支持 <code class="font-mono text-[12.5px] bg-[#F5F0E8] px-1 rounded">:has()</code>。可以基于子元素选父元素，告别冗余 JS。</p>
+      <div class="flex flex-wrap gap-1.5 mt-3.5">
+        <span class="chip chip-green">CSS</span><span class="chip chip-green">选择器</span>
+      </div>
+      <div class="flex items-center justify-between mt-4 pt-3.5 border-t border-[#F1EEE8] text-[12px] text-[#78716C]">
+        <span class="flex items-center gap-2"><span class="w-5 h-5 rounded-full bg-gradient-to-br from-green-400 to-emerald-600"></span>李四 · 1 天前</span>
+        <span class="flex items-center gap-3"><span>❤ 89</span><span>☆ 56</span></span>
+      </div>
+    </article>
+
+    <article class="card">
+      <span class="tape" style="background:#E0F2FE;color:#075985;border:1px solid #BAE6FD;">📝 笔记</span>
+      <h3 class="text-[17px] font-semibold leading-snug mt-3 mb-2 tracking-tight text-[#1C1917]">Vue 3 ref 和 reactive 的深度对比</h3>
+      <p class="text-[13.5px] text-[#44403C] leading-relaxed">ref 本质是 reactive 包装一个 <code class="font-mono text-[12.5px] bg-[#F5F0E8] px-1 rounded">{ value }</code> 对象。</p>
+      <ul class="mt-3 space-y-1.5 text-[13px] text-[#44403C] leading-relaxed">
+        <li>• <strong>ref</strong>：基本类型，模板自动 unwrap</li>
+        <li>• <strong>reactive</strong>：对象/数组，解构失去响应</li>
+        <li>• <strong>shallowRef</strong>：嵌套不追踪，性能优化</li>
+      </ul>
+      <div class="flex flex-wrap gap-1.5 mt-3.5">
+        <span class="chip chip-blue">Vue 3</span><span class="chip chip-blue">响应式</span><span class="chip">TypeScript</span>
+      </div>
+      <div class="flex items-center justify-between mt-4 pt-3.5 border-t border-[#F1EEE8] text-[12px] text-[#78716C]">
+        <span class="flex items-center gap-2"><span class="w-5 h-5 rounded-full bg-gradient-to-br from-purple-400 to-pink-500"></span>王五 · 2 天前</span>
+        <span class="flex items-center gap-3"><span>❤ 67</span><span>☆ 34</span></span>
+      </div>
+    </article>
+
+    <article class="card">
+      <span class="tape" style="background:#FEF3C7;color:#92400E;border:1px solid #FDE68A;">💡 面试题 · 困难</span>
+      <h3 class="text-[17px] font-semibold leading-snug mt-3 mb-2 tracking-tight text-[#1C1917]">React Fiber 调度的核心机制</h3>
+      <p class="text-[13.5px] text-[#44403C] leading-relaxed">Fiber 把虚拟 DOM 的更新从"递归同步"变成"链表异步"。可中断、可恢复、可优先级调度。</p>
+      <div class="mt-3 bg-[#FEF9C3] rounded-lg p-3 text-[12.5px] text-[#713F12] border border-[#FDE68A] leading-relaxed">💭 React 团队把这次重构叫"Stack → Fiber Reconciler"，是整个框架最重要的一次重写。</div>
+      <div class="flex flex-wrap gap-1.5 mt-3.5">
+        <span class="chip chip-amber">React</span><span class="chip chip-amber">Fiber</span><span class="chip">源码</span>
+      </div>
+      <div class="flex items-center justify-between mt-4 pt-3.5 border-t border-[#F1EEE8] text-[12px] text-[#78716C]">
+        <span class="flex items-center gap-2"><span class="w-5 h-5 rounded-full bg-gradient-to-br from-amber-400 to-orange-600"></span>Kevin · 3 天前</span>
+        <span class="flex items-center gap-3"><span>❤ 156</span><span>☆ 102</span></span>
+      </div>
+    </article>
+
+    <article class="card">
+      <span class="tape" style="background:#DCFCE7;color:#166534;border:1px solid #BBF7D0;">✨ TIL</span>
+      <h3 class="text-[17px] font-semibold leading-snug mt-3 mb-2 tracking-tight text-[#1C1917]">Git worktree 让我工作流飞升</h3>
+      <p class="text-[13.5px] text-[#44403C] leading-relaxed">再也不用为了跑一个 PR 备份代码切分支。同一仓库多个工作副本，独立目录，独立分支。</p>
+      <div class="code-snippet mt-3"><span class="tk-com"># 新建分支 + 独立目录</span><br><span class="tk-fn">git</span> worktree add ../feat-x feat-x</div>
+      <div class="flex flex-wrap gap-1.5 mt-3.5">
+        <span class="chip chip-green">Git</span><span class="chip chip-green">工作流</span>
+      </div>
+      <div class="flex items-center justify-between mt-4 pt-3.5 border-t border-[#F1EEE8] text-[12px] text-[#78716C]">
+        <span class="flex items-center gap-2"><span class="w-5 h-5 rounded-full bg-gradient-to-br from-stone-400 to-stone-600"></span>阿明 · 4 天前</span>
+        <span class="flex items-center gap-3"><span>❤ 203</span><span>☆ 178</span></span>
+      </div>
+    </article>
+
+    <article class="card">
+      <span class="tape" style="background:#E0F2FE;color:#075985;border:1px solid #BAE6FD;">📝 笔记</span>
+      <h3 class="text-[17px] font-semibold leading-snug mt-3 mb-2 tracking-tight text-[#1C1917]">PostgreSQL 索引选择的 5 条经验</h3>
+      <p class="text-[13.5px] text-[#44403C] leading-relaxed">基于一年 300+ 次慢查询优化的总结。</p>
+      <ol class="mt-3 space-y-1.5 text-[13px] text-[#44403C] list-decimal pl-5 leading-relaxed">
+        <li>WHERE 列放前，ORDER BY 列放后</li>
+        <li>选择率 &lt; 3% 才值得建索引</li>
+        <li>覆盖索引可以避免回表</li>
+        <li>GIN/GiST 不只是给全文搜索</li>
+        <li>EXPLAIN ANALYZE 是你最好的朋友</li>
+      </ol>
+      <div class="flex flex-wrap gap-1.5 mt-3.5">
+        <span class="chip chip-blue">PostgreSQL</span><span class="chip chip-blue">索引</span><span class="chip chip-blue">性能</span>
+      </div>
+      <div class="flex items-center justify-between mt-4 pt-3.5 border-t border-[#F1EEE8] text-[12px] text-[#78716C]">
+        <span class="flex items-center gap-2"><span class="w-5 h-5 rounded-full bg-gradient-to-br from-cyan-400 to-blue-600"></span>小林 · 5 天前</span>
+        <span class="flex items-center gap-3"><span>❤ 94</span><span>☆ 67</span></span>
+      </div>
+    </article>
+
+    <article class="card">
+      <span class="tape" style="background:#FEF3C7;color:#92400E;border:1px solid #FDE68A;">💡 面试题 · 简单</span>
+      <h3 class="text-[17px] font-semibold leading-snug mt-3 mb-2 tracking-tight text-[#1C1917]">HTTP 301 vs 302 的本质差别</h3>
+      <p class="text-[13.5px] text-[#44403C] leading-relaxed"><strong>301</strong> 永久重定向，搜索引擎更新索引；<strong>302</strong> 临时重定向，搜索引擎保留原 URL。</p>
+      <div class="flex flex-wrap gap-1.5 mt-3.5">
+        <span class="chip chip-amber">HTTP</span><span class="chip">网络基础</span>
+      </div>
+      <div class="flex items-center justify-between mt-4 pt-3.5 border-t border-[#F1EEE8] text-[12px] text-[#78716C]">
+        <span class="flex items-center gap-2"><span class="w-5 h-5 rounded-full bg-gradient-to-br from-rose-400 to-pink-600"></span>Helen · 1 周前</span>
+        <span class="flex items-center gap-3"><span>❤ 31</span><span>☆ 8</span></span>
+      </div>
+    </article>
+
+  </div>
+</main>
+
+<footer class="max-w-[1280px] mx-auto px-8 py-10 mt-4 border-t border-[#E7E5E4] text-center text-[13px] text-[#78716C]">
+  <p>Made with <span class="text-[#B45309]">🤎</span> by DevMind · 记录即创造</p>
+</footer>
+
+</body>
+</html>
