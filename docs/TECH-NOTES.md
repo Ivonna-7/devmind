@@ -716,4 +716,32 @@ divide-ink-900     子元素分隔线颜色
 
 - Tailwind 4 是 CSS-first 配置，没有 `tailwind.config.js`；`@theme` 直接写在 CSS 里。
 - `@import` 顺序：Google Fonts 的 `@import url(...)` 必须位于 `@import "tailwindcss"` 之前，因为 CSS 要求所有 `@import` 都在文件顶部。
-- VSCode 内置 CSS 校验不认识 `@theme`，会报 `unknownAtRules` 误报；代码仍可正常编译。安装 Tailwind CSS IntelliSense 扩展可消除提示；扩展依靠 `package.json` 中的 `tailwindcss` 激活，窗口需开在 `client/` 而不是仓库根目录。
+- VSCode 内置 CSS 校验不认识 `@theme`，报 `unknownAtRules` 误报，但代码可正常编译。装 Tailwind CSS IntelliSense 扩展不够——扩展激活与语言模式是两件事，内置校验照样跑。
+- 解法：`files.associations` 把 `.css` 指给 `tailwindcss` 语言模式，让 Tailwind 扩展接管解析。
+- 配置放**仓库根目录** `.vscode/settings.json`。VSCode 只读当前工作区根的 `.vscode/`，放 `client/.vscode/` 就只在单独打开 `client/` 时生效，开根目录无效。
+- glob 规则：pattern 不含斜杠只匹配文件名；含斜杠则匹配**绝对路径**。所以 `client/**/*.css` 匹配不到 `.../devmind/client/src/style.css`，须写 `**/client/**/*.css`，或直接用不含斜杠的 `*.css`。
+
+## ESM 中获取目录路径
+
+Vite 的 `resolve.alias` 需要文件系统绝对路径，但 ESM 没有 CommonJS 的 `__dirname`（ESM 要兼容浏览器，浏览器没有文件目录概念），只提供 `import.meta.url`。所以要三层转换：
+
+```ts
+import { fileURLToPath } from 'node:url'
+
+alias: {
+  '@': fileURLToPath(new URL('./src', import.meta.url)),
+}
+```
+
+| 步骤 | 结果 | 说明 |
+| --- | --- | --- |
+| `import.meta.url` | `file:///D:/.../client/vite.config.ts` | 当前模块地址，URL 格式（带协议头、正斜杠、特殊字符百分号编码） |
+| `new URL('./src', ...)` | `file:///D:/.../client/src` | 两个参数：相对地址 + 基准。基准是文件时，相对路径从其所在目录算起，`vite.config.ts` 被丢弃换成 `src` |
+| `fileURLToPath(...)` | `D:\...\client\src` | 转成本机路径：去协议头、转反斜杠、解码百分号 |
+
+要点：
+
+- `./src` 的 `./` 可省略，但 `/src` 不行 —— 斜杠开头表示从根目录算，与基准无关。
+- 本项目路径含中文，URL 形式下会被编码为 `%E5%90%88%E5%90%88`，必须经 `fileURLToPath` 解码，否则 Vite 找不到目录。
+- `node:` 前缀显式声明 Node 内置模块，避免被同名 npm 包劫持。
+- 别名需在 `vite.config.ts` 和 `tsconfig.app.json`（`baseUrl` + `paths`）两处都配：前者管运行时解析，后者管编辑器跳转和类型检查。
