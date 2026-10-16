@@ -1,6 +1,6 @@
-﻿# DevLog — 开发者知识卡片平台 · 项目规划文档
+﻿# DevMind — 开发者知识卡片平台 · 项目规划文档
 
-> 本文档是 DevLog 项目的唯一权威参考。任何人（或 AI）读完后，应能完整理解项目范围、已做的决策、数据库设计、API 设计、前端页面规划，以及接下来要做什么。
+> 本文档是 DevMind 的整体产品、范围与进度规划。实现细节持续同步到 SERVER.md 和 CLIENT.md，实际代码与已验证行为优先于文档描述。
 
 ---
 
@@ -33,7 +33,7 @@
 
 ### 1.2 项目定位
 
-DevLog 不是一个"用来练手就扔掉"的玩具项目，而是一个**可以放进作品集、能真正使用的产品**。
+DevMind 不是一个"用来练手就扔掉"的玩具项目，而是一个**可以放进作品集、能真正使用的产品**。
 
 **核心一句话：** 开发者知识卡片平台，随手记、发布分享、间隔复习。
 
@@ -45,7 +45,7 @@ DevLog 不是一个"用来练手就扔掉"的玩具项目，而是一个**可以
 | Todo App | 过于简单，无法展示全栈能力 |
 | 电商系统 | 太复杂，3 周内无法完成 |
 
-DevLog 的优势：
+DevMind 的优势：
 - **差异化**：知识卡片 + 间隔复习，真实解决开发者的痛点
 - **复杂度适中**：4 个后端模块，5 个前端页面，3 周可完成
 - **实用性强**：开发过程中本身就可以用它来记录笔记
@@ -60,15 +60,15 @@ DevLog 的优势：
 | 技术 | 版本要求 | 说明 |
 |---|---|---|
 | Node.js | >= 18 | 运行时环境 |
-| Express | ^4.x | Web 框架，轻量、文档全 |
-| TypeScript | ^5.x | 类型安全，与工作技术栈对齐 |
+| Express | ^5.2.1 | Web 框架，轻量、文档全 |
+| TypeScript | ^6.0.3 | 类型安全，与工作技术栈对齐 |
 | PostgreSQL | >= 14 | 关系型数据库，适合复杂查询 |
 | `pg` / `node-postgres` | ^8.x | PostgreSQL 客户端 |
-| bcrypt | ^5.x | 密码哈希 |
+| bcrypt | ^6.0.0 | 密码哈希 |
 | jsonwebtoken | ^9.x | JWT 签发与验证 |
 | zod | ^3.x | 请求参数校验 |
 | cors | ^2.x | 跨域处理 |
-| dotenv | ^16.x | 环境变量管理 |
+| dotenv | ^17.4.2 | 环境变量管理 |
 
 **不使用 ORM 的原因：** 直接写 SQL 能更好地学习数据库基础。Prisma/TypeORM 虽然方便，但会屏蔽 JOIN、聚合等核心概念，不适合零基础学习阶段。
 
@@ -76,12 +76,12 @@ DevLog 的优势：
 
 | 技术 | 版本要求 | 说明 |
 |---|---|---|
-| Vue 3 | ^3.4 | Composition API，与工作栈互补 |
-| Vite | ^5.x | 构建工具，开发体验极佳 |
-| Pinia | ^2.x | 状态管理，Vue 3 官方推荐 |
-| Vue Router | ^4.x | 客户端路由 |
-| Tailwind CSS | ^4.x | 原子化 CSS，不引组件库（组件库对比见 TECH-NOTES.md「前端 UI 组件库对比」） |
-| Axios | ^1.x | HTTP 请求 |
+| Vue 3 | ^3.5.34 | Composition API，与工作栈互补 |
+| Vite | ^8.0.12 | 构建工具，开发体验极佳 |
+| Pinia | ^4.0.3 | 状态管理，Vue 3 官方推荐 |
+| Vue Router | ^4.6.4 | 客户端路由 |
+| Tailwind CSS | ^4.3.3 | 原子化 CSS，不引组件库（组件库对比见 TECH-NOTES.md「前端 UI 组件库对比」） |
+| Axios | ^1.20.0 | HTTP 请求 |
 | marked / markdown-it | latest | Markdown 渲染 |
 | highlight.js | latest | 代码高亮 |
 
@@ -99,7 +99,7 @@ DevLog 的优势：
 
 ### 3.1 卡片类型
 
-DevLog 的核心是"知识卡片"，而不是普通文章。卡片分为 4 种类型，每种有不同的展示和填写方式：
+DevMind 的核心是"知识卡片"，而不是普通文章。卡片分为 4 种类型，每种有不同的展示和填写方式：
 
 | 类型 | 标识 | 适合场景 | 特殊字段 |
 |---|---|---|---|
@@ -390,7 +390,7 @@ users ─────┬──── cards ──┬──── card_tags ─�
 | `type` | string | 按类型过滤：note / question / bug / til |
 | `tag` | string | 按标签名过滤 |
 | `visibility` | string | private / public（仅对当前登录用户有效） |
-| `search` | string | 关键词搜索（匹配 title 和 content） |
+| `keyword` | string | 关键词搜索（匹配 title 和 content） |
 | `user_id` | number | 获取指定用户的卡片 |
 | `page` | number | 页码，默认 1 |
 | `limit` | number | 每页条数，默认 20，最大 50 |
@@ -644,15 +644,7 @@ LIMIT $2;
 
 **需要认证**
 
-**成功响应 200：** 最近 365 天每天创建的卡片数量
-
-```json
-[
-  { "date": "2024-01-01", "count": 3 },
-  { "date": "2024-01-02", "count": 0 },
-  ...
-]
-```
+**成功响应 200：** 最近 365 天有数据的日期及当天创建的卡片数量。后端只返回有数据的日期，前端负责补齐没有数据的日期并填充 `count: 0`。
 
 **后端查询（最近 365 天）：**
 ```sql
@@ -768,6 +760,8 @@ ORDER BY date ASC;
 
 ## 7. UI/UX 设计要点
 
+`docs/DevMind-UI-Design.docx` 和 `docs/mockups` 都是前端参考资料；当前视觉方向是温暖琥珀色纸张风格。布局、样式与交互可在实现过程中演进，最终文档以已验证的实现为准。
+
 ### 7.1 必须实现
 
 - **🌓 暗色/亮色主题切换**：用户偏好持久化到 localStorage
@@ -833,9 +827,9 @@ v1 采用简化版，不实现 SM-2 等复杂算法。
 ## 9. 项目目录结构
 
 ```
-devlog/
+devmind/
 ├── docs/
-│   └── PLAN.md                  # 本文件，项目唯一权威文档
+│   └── PLAN.md                  # 本文件，项目范围、产品与进度规划
 │
 ├── server/                       # 后端（Express + TypeScript）
 │   ├── src/
@@ -978,7 +972,7 @@ devlog/
 
 - [ ] 初始化 `client/` 目录（`npm create vite@latest`）
 - [ ] 安装依赖：Pinia、Vue Router、Axios、Tailwind CSS、markdown 相关
-- [ ] 配置路由（5 个页面路由）、Pinia store、Axios 实例
+- [ ] 配置路由（7 个路由，5 个核心业务页面加登录/注册）、Pinia store、Axios 实例
 - [ ] 实现 NavBar 组件（登录状态判断、导航链接）
 - [ ] 实现首页 `HomeView.vue`：卡片列表、搜索、筛选
 - [ ] 实现卡片详情 `CardDetailView.vue`：Markdown 渲染、question 折叠、点赞/收藏
@@ -1084,7 +1078,7 @@ CLIENT_URL=http://localhost:5173
 
 ## 13. 当前进度
 
-> 最后更新：2026-05-12
+> 最后更新：2026-09-30
 
 ### 后端 ✅ 已完成
 
@@ -1094,16 +1088,16 @@ CLIENT_URL=http://localhost:5173
 - [x] Supabase PostgreSQL 数据库连接
 - [x] 7 张数据库表全部创建
 - [x] **Auth 模块**（4 接口）：register / login / me GET / me PUT
-- [x] **Cards 模块**（8 接口）：CRUD + 置顶 + 可见性 + 随机复习 + 复习提交
+- [x] **Cards 模块**（9 接口）：CRUD + 置顶 + 可见性 + 随机复习 + 复习提交
 - [x] **Social 模块**（5 接口）：点赞/取消 + 收藏/取消 + 收藏列表
 - [x] **Stats 模块**（3 接口）：总览 + 热力图 + 标签分布
 - [x] **Tags 模块**（2 接口）：所有标签 + 某标签下的卡片
 - [x] **Users 模块**（1 接口）：公开用户信息（个人主页用）
 - [x] 可选鉴权中间件 `optionalAuthMiddleWare`
 - [x] 全局错误处理中间件 `errorHandler`
-- [x] 所有 23 个接口 Apifox 测试通过
+- [x] 所有 24 个接口 Apifox 测试通过
 
-**合计 23 个后端接口全部完成。**
+**合计 24 个后端接口全部完成。当前 API 已是可使用的基线，联调或有价值的小功能可能继续增加接口或字段，相关文档同步更新。**
 
 ### 后端待做（优先级）
 
@@ -1124,19 +1118,20 @@ CLIENT_URL=http://localhost:5173
 
 #### 阶段 1：项目搭建（Day 1，约 2 小时）
 
-- [ ] `npm create vite@latest client` 初始化 Vue 3 + Vite
-- [ ] 安装核心依赖：
+- [x] `npm create vite@latest client` 初始化 Vue 3 + Vite
+- [x] 安装核心依赖：
   - `pinia` `vue-router@4` `axios`
   - 样式：`tailwindcss` + `@tailwindcss/vite`（不引组件库，tokens.css 转 `@theme`）
-  - Markdown：`marked` 或 `markdown-it` + `highlight.js`
-  - 图表：`echarts` 或 `chart.js`（仪表盘用）
-- [ ] 配置 Vite 代理（转发 `/api` 到 `http://localhost:3000`）
+- [x] 配置暖琥珀色 Tailwind tokens
+- [ ] 安装 Markdown：`marked` 或 `markdown-it` + `highlight.js`
+- [ ] 安装图表：`echarts` 或 `chart.js`（仪表盘用）
+- [x] 配置 Vite 代理（转发 `/api` 到 `http://localhost:3000`）
 - [ ] 配置 `.env.development` 和 `.env.production`（`VITE_API_BASE_URL`）
-- [ ] 配置 5 个页面路由：`/` `/login` `/register` `/workspace` `/dashboard` `/user/:id` `/card/:id`
+- [ ] 配置 7 个路由（5 个核心业务页面加登录/注册）：`/` `/login` `/register` `/workspace` `/dashboard` `/user/:id` `/card/:id`
 - [ ] 创建 Pinia stores：
   - [ ] `auth.store.ts`（token、当前用户、登录/登出 actions）
   - [ ] `ui.store.ts`（主题切换）
-- [ ] 创建 Axios 实例（`src/api/client.ts`）
+- [ ] 完成 Axios 实例（`src/api/client.ts` 当前仅为不完整脚手架）
   - [ ] 请求拦截器：自动加 `Authorization: Bearer <token>`
   - [ ] 响应拦截器：401 时清 token 跳登录页
 - [ ] 创建 API 封装：`auth.api.ts` `cards.api.ts` `social.api.ts` `stats.api.ts` `tags.api.ts`
@@ -1216,7 +1211,7 @@ CLIENT_URL=http://localhost:5173
 #### 阶段 5：个人主页（Day 9，约 2-3 小时）
 
 - [ ] **UserProfileView**：
-  - [ ] 调 `GET /api/auth/me` 或 `/users/:id`（如果有）显示用户信息
+  - [ ] 调 `GET /api/users/:id` 显示用户信息
   - [ ] 调 `GET /api/cards?user_id=<:id>` 查公开卡
   - [ ] 显示该用户的标签云
 - [ ] **TagCloud 组件**：

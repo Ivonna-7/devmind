@@ -22,6 +22,8 @@
   .page-card[data-id="03"] .preview { background: linear-gradient(135deg, #F5F0E8, #E7E5E4); }
   .page-card[data-id="04"] .preview { background: linear-gradient(135deg, #DCFCE7, #BBF7D0); }
   .page-card[data-id="05"] .preview { background: linear-gradient(135deg, #FEE2E2, #FECACA); }
+  .page-card[data-id="06"] .preview { background: linear-gradient(135deg, #FEF3C7, #FDE68A); }
+  .page-card[data-id="07"] .preview { background: linear-gradient(135deg, #FED7AA, #FDE68A); }
   .page-card .num { position: absolute; top: 18px; left: 18px; font-family: "JetBrains Mono", monospace; font-size: 12px; color: var(--ink-500); background: rgba(255,255,255,0.85); padding: 3px 10px; border-radius: 999px; backdrop-filter: blur(4px); }
   .page-card .body { padding: 22px 24px 24px; }
   .page-card h3 { font-size: 19px; font-weight: 600; margin: 0 0 8px; color: var(--ink-900); letter-spacing: -0.01em; }
@@ -51,7 +53,7 @@
       <div class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 016.5 2H20v20H6.5a2.5 2.5 0 010-5H20"/></svg></div>
       <span>DevMind · UI Design Mockups</span>
     </div>
-    <h1>5 个页面，<em>一种风格</em></h1>
+    <h1>7 个页面，<em>一种风格</em></h1>
     <p>暖琥珀纸 · Amber Paper · 独立开发者的手工笔记本美学。点开任何一张卡片查看完整页面。</p>
   </div>
 
@@ -138,13 +140,37 @@
       </div>
     </a>
 
-    <div class="page-card" style="cursor: default; background: linear-gradient(135deg, #FAF7F2, #F5F0E8); border-style: dashed; display: flex; align-items: center; justify-content: center; text-align: center;">
-      <div style="padding: 40px 24px;">
-        <div style="font-size: 40px; margin-bottom: 10px;">➕</div>
-        <div style="font-family: 'Instrument Serif', serif; font-size: 19px; font-weight: 600; color: var(--ink-700);">还想加什么页面？</div>
-        <div style="font-size: 13px; color: var(--ink-500); margin-top: 6px; max-width: 280px;">登录/注册、卡片编辑器、标签详情页、通知中心...告诉 Claude 继续补</div>
+    <a href="06-login-bookplate.html" class="page-card" data-id="06">
+      <div class="preview">🔐</div>
+      <span class="num">06</span>
+      <div class="body">
+        <div class="url">/login</div>
+        <h3>登录页 Login</h3>
+        <p>单栏居中版式：温暖琥珀渐变背景，DevMind 品牌标志，居中纸面板表单。仅邮箱 + 密码，克制留白。</p>
+        <div class="features">
+          <span class="chip chip-amber">单栏居中</span>
+          <span class="chip">暖琥珀渐变</span>
+          <span class="chip">邮箱 + 密码</span>
+        </div>
+        <span class="arrow">→</span>
       </div>
-    </div>
+    </a>
+
+    <a href="07-register.html" class="page-card" data-id="07">
+      <div class="preview">✍️</div>
+      <span class="num">07</span>
+      <div class="body">
+        <div class="url">/register</div>
+        <h3>注册页 Register</h3>
+        <p>双栏品牌故事版式：左侧品牌叙事与层叠知识卡，右侧注册纸面板。用户名、邮箱与密码完整建册。</p>
+        <div class="features">
+          <span class="chip chip-amber">双栏版式</span>
+          <span class="chip">知识卡堆叠</span>
+          <span class="chip">用户名 + 邮箱 + 密码</span>
+        </div>
+        <span class="arrow">→</span>
+      </div>
+    </a>
 
   </div>
 

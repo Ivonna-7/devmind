@@ -745,3 +745,19 @@ alias: {
 - 本项目路径含中文，URL 形式下会被编码为 `%E5%90%88%E5%90%88`，必须经 `fileURLToPath` 解码，否则 Vite 找不到目录。
 - `node:` 前缀显式声明 Node 内置模块，避免被同名 npm 包劫持。
 - 别名需在 `vite.config.ts` 和 `tsconfig.app.json`（`baseUrl` + `paths`）两处都配：前者管运行时解析，后者管编辑器跳转和类型检查。
+
+---
+
+## Axios 请求方法与参数约定
+
+| 方法 | 常见用途 | data | config |
+| --- | --- | --- | --- |
+| GET | 获取或查询资源，如列表、详情、搜索、分页 | 无 | 第二个参数；查询值放在 `config.params` |
+| POST | 创建资源或提交/触发操作，如登录、表单提交、文件上传、执行动作 | 第二个参数 | 第三个参数 |
+| PUT | 替换或完整更新资源 | 第二个参数 | 第三个参数 |
+| PATCH | 部分更新资源，或修改一个/少数字段、状态 | 第二个参数 | 第三个参数 |
+| DELETE | 删除资源或移除关联关系 | 通常无 | 第二个参数 |
+
+`data` 是 HTTP 请求体；`config` 是 Axios 请求配置，例如 `params`、`headers`、`timeout`。GET 的查询条件放在 `config.params` 中。如果 POST/PUT/PATCH 请求没有请求体但需要传递 config，应在 config 前将 data 传为 `undefined`。
+
+`params` 和 `payload` 只是普通的变量命名约定，不是 Axios 关键字：`params` 通常表示查询参数，`payload` 通常表示 POST/PUT/PATCH 的请求体数据。
