@@ -1195,7 +1195,9 @@ SELECT
     'avatar', u.avatar
   ) AS author,
   (SELECT COUNT(*) FROM likes WHERE card_id = c.id)::int AS likes_count,
-  (SELECT COUNT(*) FROM favorites WHERE card_id = c.id)::int AS favorites_count
+  (SELECT COUNT(*) FROM favorites WHERE card_id = c.id)::int AS favorites_count,
+  EXISTS(SELECT 1 FROM likes WHERE card_id = c.id AND user_id = $N) AS liked_by_me,
+  EXISTS(SELECT 1 FROM favorites WHERE card_id = c.id AND user_id = $N) AS favorited_by_me
 FROM cards c
 LEFT JOIN users u ON c.user_id = u.id
 LEFT JOIN card_tags ct ON c.id=ct.card_id
@@ -1213,10 +1215,11 @@ LIMIT $${paramsIndex} OFFSET $${paramsIndex + 1}
 - **`GROUP BY c.id, u.id`**：SELECT 里有非聚合的 `u.*` 字段，必须加 users 主键到 GROUP BY
 - **`(SELECT COUNT(*) ... )::int`**：PG 的 COUNT 返回 BIGINT（在 pg 驱动里是字符串），`::int` 直接转成 JS 能用的整数，前端不用 parseInt
 - **`json_build_object`**：把作者信息打包成嵌套对象，前端拿到 `card.author.nickname` 直接用
+- **`liked_by_me / favorited_by_me`**：列表同样返回当前用户是否已赞 / 已藏（`$N` = 登录用户 id，未登录传 0）。早期为省子查询曾不返回，后来首页卡片也要显示互动态，已补上——与详情一致
 
 ### 18.3 getCardById 扩展返回（详情页用）
 
-详情比列表多 `liked_by_me` 和 `favorited_by_me`（按钮 toggle 需要）以及 `author.bio`：
+详情与列表返回字段几乎一致，唯一多出 `author.bio`（右侧作者卡要展示简介，列表不需要）：
 
 ```sql
 SELECT 
@@ -1353,20 +1356,24 @@ LIMIT $2 OFFSET $3
 | `author` | ✓ | ✓ | ✓ |
 | `likes_count` | ✓ | ✓ | ✓ |
 | `favorites_count` | ✓ | ✓ | ✓ |
+| `liked_by_me` | ✓ | ✓ | ✓ |
+| `favorited_by_me` | ✓ | ✓ | ✓ |
 | `favorited_at` | — | — | ✓（独有）|
 
 三个列表字段基本统一。**前端只需要一套 CardItem 组件**就能渲染所有三个列表接口的数据。
 
 ---
 
-### 18.8 为什么 list 不带 liked_by_me / favorited_by_me
+### 18.8 列表也带 liked_by_me / favorited_by_me
 
-两个考虑：
+> ℹ️ 早期设计列表不带这两个字段（见下文旧权衡），后来首页 / 个人主页卡片也要做点赞 / 收藏互动（显示“已赞 / 已藏”态），所以 `getCardList` SQL 已补上两个 EXISTS 子查询，与详情保持一致。
 
-1. **Mockup 列表只显示数字**（`❤ 24  ☆ 12`），不显示"你是否点过"。列表 UI 没有这个需求。
-2. **EXISTS 子查询的性能成本**：每条卡 2 个 EXISTS，20 条列表 = 40 次子查询。详情页一次查 1 张卡，加 2 次查询可接受；列表放大 20 倍就浪费。
+当初权衡的两个考虑（仅作设计演进记录）：
 
-所以**按页面实际需要放字段**：列表要的给，不要的不给。
+1. **Mockup 列表只显示数字**（`❤ 24  ☆ 12`），最初不显示“你是否点过”。
+2. **EXISTS 子查询的性能成本**：每条卡 2 个 EXISTS，20 条列表 = 40 次子查询。
+
+现在 UI 要在列表卡片上直接点赞 / 收藏，字段必须返回；性能上单页最多 50 条，EXISTS 开销可接受。
 
 ---
 
@@ -1396,8 +1403,8 @@ LIMIT $2 OFFSET $3
 
 旧用例不会失败（返回字段**多**了不会让旧断言 fail），但建议为新字段加断言：
 
-- `GET /api/cards` 返回每张卡应含 `author.nickname / author.avatar / likes_count / favorites_count`，**不应**含 `liked_by_me / favorited_by_me`
-- `GET /api/cards/:id` 返回应含 `liked_by_me / favorited_by_me / author.bio`
+- `GET /api/cards` 返回每张卡应含 `author.nickname / author.avatar / likes_count / favorites_count / liked_by_me / favorited_by_me`（`author` 不含 `bio`，那是详情独有）
+- `GET /api/cards/:id` 返回应含 `liked_by_me / favorited_by_me / author.bio`（比列表多 `author.bio`）
 - `GET /api/cards?sort=most_liked&limit=5` 返回按 `likes_count` 降序排列
 - `GET /api/users/:id` 返回字段**不含** `email / password_hash`
 - `GET /api/users/99999` 返回 404

@@ -132,9 +132,9 @@ function handleUserMenuSelect(key: string | number) {
         </n-input>
         <span
           v-else
-          class="inline-flex items-center gap-2 rounded-full border border-line bg-soft px-3.5 py-1.5 text-[14px] font-medium text-ink-700"
+          class="flex w-full justify-center items-center gap-2 rounded-full border border-line bg-soft px-4.5 py-2 text-[15px] font-medium text-ink-700"
         >
-          <n-icon :component="banner.icon" class="text-brand" :size="17" />
+          <n-icon :component="banner.icon" class="text-brand" :size="18" />
           {{ banner.title }}
         </span>
       </div>

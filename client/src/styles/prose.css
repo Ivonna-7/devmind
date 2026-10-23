@@ -1,0 +1,148 @@
+/* Markdown 富文本排版（粗调，后续可换成 @tailwindcss/typography）
+ * 基类 .detail-prose：详情页正文用，间距宽松
+ * 修饰类 .detail-prose--compact：紧凑变体（弹窗预览等小空间场景），仅覆盖间距 / 字号 */
+
+.detail-prose h1,
+.detail-prose h2,
+.detail-prose h3,
+.detail-prose h4 {
+  color: var(--color-ink-900, #1c1917);
+  font-weight: 600;
+  line-height: 1.35;
+  margin: 1.6em 0 0.6em;
+  scroll-margin-top: 96px;
+}
+.detail-prose h2 {
+  font-size: 1.4em;
+  padding-bottom: 0.3em;
+  border-bottom: 1px solid var(--color-line, #e7e5e4);
+}
+.detail-prose h3 {
+  font-size: 1.15em;
+}
+.detail-prose p {
+  margin: 0.8em 0;
+}
+.detail-prose a {
+  color: var(--color-brand, #b45309);
+  text-decoration: underline;
+}
+.detail-prose code {
+  font-size: 0.875em;
+  background: var(--color-soft, #f5f5f4);
+  border: 1px solid var(--color-line-soft, #f0efee);
+  border-radius: 5px;
+  padding: 0.1em 0.4em;
+}
+.detail-prose pre {
+  background: #1c1917;
+  color: #fafaf9;
+  border-radius: 10px;
+  padding: 1em 1.2em;
+  overflow-x: auto;
+  margin: 1.2em 0;
+  font-size: 0.85em;
+  line-height: 1.6;
+}
+.detail-prose pre code {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  color: inherit;
+  font-size: 1em;
+}
+.detail-prose blockquote {
+  margin: 1.2em 0;
+  padding: 0.6em 1em;
+  border-left: 3px solid var(--color-brand, #b45309);
+  background: var(--color-brand-soft, #fef3c7);
+  border-radius: 0 8px 8px 0;
+  color: var(--color-ink-700, #44403c);
+}
+.detail-prose ul,
+.detail-prose ol {
+  margin: 0.8em 0;
+  padding-left: 1.5em;
+}
+.detail-prose ul {
+  list-style: disc;
+}
+.detail-prose ol {
+  list-style: decimal;
+}
+.detail-prose li {
+  margin: 0.3em 0;
+}
+.detail-prose img {
+  max-width: 100%;
+  border-radius: 10px;
+  margin: 1.2em 0;
+}
+.detail-prose table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.2em 0;
+  font-size: 0.9em;
+}
+.detail-prose th,
+.detail-prose td {
+  border: 1px solid var(--color-line, #e7e5e4);
+  padding: 0.5em 0.8em;
+  text-align: left;
+}
+.detail-prose th {
+  background: var(--color-soft, #f5f5f4);
+  font-weight: 600;
+}
+.detail-prose hr {
+  border: 0;
+  border-top: 1px solid var(--color-line, #e7e5e4);
+  margin: 2em 0;
+}
+
+/* ---------- 紧凑变体：仅覆盖间距 / 字号，颜色描边沿用基类 ---------- */
+.detail-prose--compact h1,
+.detail-prose--compact h2,
+.detail-prose--compact h3,
+.detail-prose--compact h4 {
+  margin: 1.2em 0 0.5em;
+  scroll-margin-top: 0;
+}
+.detail-prose--compact h2 {
+  font-size: 1.3em;
+  padding-bottom: 0.25em;
+}
+.detail-prose--compact h3 {
+  font-size: 1.1em;
+}
+.detail-prose--compact p {
+  margin: 0.6em 0;
+}
+.detail-prose--compact pre {
+  padding: 0.9em 1.1em;
+  margin: 1em 0;
+}
+.detail-prose--compact blockquote {
+  margin: 1em 0;
+  padding: 0.5em 0.9em;
+}
+.detail-prose--compact ul,
+.detail-prose--compact ol {
+  margin: 0.6em 0;
+}
+.detail-prose--compact li {
+  margin: 0.25em 0;
+}
+.detail-prose--compact img {
+  margin: 1em 0;
+}
+.detail-prose--compact table {
+  margin: 1em 0;
+}
+.detail-prose--compact th,
+.detail-prose--compact td {
+  padding: 0.4em 0.7em;
+}
+.detail-prose--compact hr {
+  margin: 1.5em 0;
+}

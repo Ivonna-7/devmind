@@ -1,3 +1,4 @@
+/* 全局基础样式：设计 token（@theme）+ html/body 基础 + a 重置 */
 @import url("https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Noto+Serif+SC:wght@500;600;700&display=swap");
 @import "tailwindcss";
 
