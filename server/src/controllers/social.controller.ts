@@ -62,6 +62,7 @@ export const getUserFavoriteCardsHandler = async (
   const userId = Number(req.params.id);
   const page = Number(req.query.page) || 1;
   const limit = Math.min(Number(req.query.limit) || 20, 50);
-  const favoriteCards = await getUserFavoriteCards(userId, page, limit);
+  const keyword = req.query.keyword as string;
+  const favoriteCards = await getUserFavoriteCards(userId, page, limit, keyword);
   res.status(200).json(favoriteCards);
 };

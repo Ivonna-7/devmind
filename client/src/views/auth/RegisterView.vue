@@ -5,6 +5,7 @@ import type { FormInst, FormRules } from "naive-ui";
 import { register } from "@/api/authService";
 import { useAuthStore } from "@/stores/auth";
 import { useRouter } from "vue-router";
+import { ArrowForwardOutline, LockClosedOutline, MailOutline, PersonOutline } from "@vicons/ionicons5";
 
 const message = useMessage();
 const authStore = useAuthStore();
@@ -217,21 +218,7 @@ const handleRegister = () => {
             }"
           >
             <template #prefix>
-              <svg
-                class="text-ink-400"
-                width="17"
-                height="17"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                aria-hidden="true"
-              >
-                <path d="M20 21a8 8 0 0 0-16 0" />
-                <circle cx="12" cy="7" r="4" />
-              </svg>
+              <n-icon :component="PersonOutline" :size="17" class="text-ink-400" />
             </template>
           </n-input>
         </n-form-item>
@@ -253,21 +240,7 @@ const handleRegister = () => {
             }"
           >
             <template #prefix>
-              <svg
-                class="text-ink-400"
-                width="17"
-                height="17"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                aria-hidden="true"
-              >
-                <rect x="2" y="4" width="20" height="16" rx="3" />
-                <path d="m3 6 9 7 9-7" />
-              </svg>
+              <n-icon :component="MailOutline" :size="17" class="text-ink-400" />
             </template>
           </n-input>
         </n-form-item>
@@ -286,47 +259,25 @@ const handleRegister = () => {
             :input-props="{ id: 'password', autocomplete: 'new-password' }"
           >
             <template #prefix>
-              <svg
-                class="text-ink-400"
-                width="17"
-                height="17"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                aria-hidden="true"
-              >
-                <rect x="4" y="11" width="16" height="10" rx="2" />
-                <path d="M8 11V7a4 4 0 0 1 8 0v4" />
-              </svg>
+              <n-icon :component="LockClosedOutline" :size="17" class="text-ink-400" />
             </template>
           </n-input>
         </n-form-item>
 
-        <button
-          type="submit"
+        <n-button
+          attr-type="submit"
+          type="primary"
+          :loading="loading"
           :disabled="loading"
+          block
+          size="large"
           class="mt-1.5 inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-brand bg-brand text-[15px] font-semibold tracking-[0.01em] text-white shadow-[0_1px_3px_rgba(180,83,9,0.3)] transition-[background,transform,box-shadow] duration-150 hover:bg-brand-hover hover:shadow-[0_4px_14px_rgba(180,83,9,0.28)] active:translate-y-px disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-brand-deep focus-visible:outline-offset-2"
         >
+          <template #icon>
+            <n-icon v-if="!loading" :component="ArrowForwardOutline" :size="17" />
+          </template>
           {{ loading ? "注册中..." : "注册" }}
-          <svg
-            v-if="!loading"
-            width="17"
-            height="17"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2.2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            aria-hidden="true"
-          >
-            <path d="M5 12h14" />
-            <path d="m12 5 7 7-7 7" />
-          </svg>
-        </button>
+        </n-button>
 
         <p
           class="mt-5.5 border-t border-line-soft pt-5 text-center text-[13.5px] text-ink-500"

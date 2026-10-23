@@ -33,17 +33,20 @@ export const unFavoriteCard = async (userId: number, cardId: number) => {
 export const getUserFavoriteCards = async (
   userId: number,
   page: number,
-  limit: number
+  limit: number,
+  keyword = ""
 ) => {
   const offset = (page - 1) * limit;
-  // 查总数
+  const pattern = `%${keyword}%`;
+  // 查总数（JOIN cards 才能按标题/内容搜索）
   const countResult = await pool.query(
-    `SELECT COUNT(*) FROM favorites WHERE user_id=$1`,
-    [userId]
+    `SELECT COUNT(*) FROM favorites f
+     JOIN cards c ON f.card_id = c.id
+     WHERE f.user_id = $1 AND (c.title ILIKE $2 OR c.content ILIKE $2)`,
+    [userId, pattern]
   );
   const total = parseInt(countResult.rows[0].count);
-  // 查列表
-//   favorites 表的 created_at 是收藏时间（和卡片的 created_at 不一样）
+  // 查列表（favorites.created_at 是收藏时间，和卡片的 created_at 不同）
   const listResult = await pool.query(
     `SELECT c.*,
     COALESCE(json_agg(DISTINCT t.name) FILTER (WHERE t.name IS NOT NULL),'[]') AS tags,
@@ -59,11 +62,11 @@ export const getUserFavoriteCards = async (
     LEFT JOIN users u ON c.user_id = u.id
     LEFT JOIN card_tags ct ON c.id = ct.card_id
     LEFT JOIN tags t ON ct.tag_id = t.id
-    WHERE f.user_id = $1
+    WHERE f.user_id = $1 AND (c.title ILIKE $2 OR c.content ILIKE $2)
     GROUP BY c.id, u.id, f.created_at
     ORDER BY f.created_at DESC
-    LIMIT $2 OFFSET $3`,
-    [userId, limit, offset]
+    LIMIT $3 OFFSET $4`,
+    [userId, pattern, limit, offset]
   );
   const cards = listResult.rows.map((row: any) => {
     const { author_id, author_username, author_nickname, author_avatar, ...card } = row;

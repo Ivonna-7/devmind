@@ -17,13 +17,13 @@
   .page-card { display: block; background: #FFFFFF; border: 1px solid var(--line); border-radius: 18px; overflow: hidden; box-shadow: 0 1px 3px rgba(28,25,23,0.04); transition: all 0.25s ease; cursor: pointer; position: relative; }
   .page-card:hover { transform: translateY(-3px); box-shadow: 0 8px 32px rgba(28,25,23,0.08); border-color: var(--ink-300); }
   .page-card .preview { height: 220px; background: linear-gradient(135deg, #FEF3C7, #FDE68A); position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 68px; }
-  .page-card[data-id="01"] .preview { background: linear-gradient(135deg, #FEF3C7, #FDE68A); }
-  .page-card[data-id="02"] .preview { background: linear-gradient(135deg, #E0F2FE, #BAE6FD); }
-  .page-card[data-id="03"] .preview { background: linear-gradient(135deg, #F5F0E8, #E7E5E4); }
-  .page-card[data-id="04"] .preview { background: linear-gradient(135deg, #DCFCE7, #BBF7D0); }
-  .page-card[data-id="05"] .preview { background: linear-gradient(135deg, #FEE2E2, #FECACA); }
-  .page-card[data-id="06"] .preview { background: linear-gradient(135deg, #FEF3C7, #FDE68A); }
-  .page-card[data-id="07"] .preview { background: linear-gradient(135deg, #FED7AA, #FDE68A); }
+  .page-card[data-id="01"] .preview { background: linear-gradient(135deg, #FED7AA, #FDE68A); }
+  .page-card[data-id="02"] .preview { background: linear-gradient(135deg, #FEF3C7, #FDE68A); }
+  .page-card[data-id="03"] .preview { background: linear-gradient(135deg, #FEF3C7, #FDE68A); }
+  .page-card[data-id="04"] .preview { background: linear-gradient(135deg, #E0F2FE, #BAE6FD); }
+  .page-card[data-id="05"] .preview { background: linear-gradient(135deg, #F5F0E8, #E7E5E4); }
+  .page-card[data-id="06"] .preview { background: linear-gradient(135deg, #DCFCE7, #BBF7D0); }
+  .page-card[data-id="07"] .preview { background: linear-gradient(135deg, #FEE2E2, #FECACA); }
   .page-card .num { position: absolute; top: 18px; left: 18px; font-family: "JetBrains Mono", monospace; font-size: 12px; color: var(--ink-500); background: rgba(255,255,255,0.85); padding: 3px 10px; border-radius: 999px; backdrop-filter: blur(4px); }
   .page-card .body { padding: 22px 24px 24px; }
   .page-card h3 { font-size: 19px; font-weight: 600; margin: 0 0 8px; color: var(--ink-900); letter-spacing: -0.01em; }
@@ -59,9 +59,41 @@
 
   <div class="page-grid">
 
-    <a href="01-home.html" class="page-card" data-id="01">
-      <div class="preview">🏠</div>
+    <a href="01-register.html" class="page-card" data-id="01">
+      <div class="preview">✍️</div>
       <span class="num">01</span>
+      <div class="body">
+        <div class="url">/register</div>
+        <h3>注册页 Register</h3>
+        <p>双栏品牌故事版式：左侧品牌叙事与层叠知识卡，右侧注册纸面板。用户名、邮箱与密码完整建册。</p>
+        <div class="features">
+          <span class="chip chip-amber">双栏版式</span>
+          <span class="chip">知识卡堆叠</span>
+          <span class="chip">用户名 + 邮箱 + 密码</span>
+        </div>
+        <span class="arrow">→</span>
+      </div>
+    </a>
+
+    <a href="02-login.html" class="page-card" data-id="02">
+      <div class="preview">🔐</div>
+      <span class="num">02</span>
+      <div class="body">
+        <div class="url">/login</div>
+        <h3>登录页 Login</h3>
+        <p>单栏居中版式：温暖琥珀渐变背景，DevMind 品牌标志，居中纸面板表单。仅邮箱 + 密码，克制留白。</p>
+        <div class="features">
+          <span class="chip chip-amber">单栏居中</span>
+          <span class="chip">暖琥珀渐变</span>
+          <span class="chip">邮箱 + 密码</span>
+        </div>
+        <span class="arrow">→</span>
+      </div>
+    </a>
+
+    <a href="03-home.html" class="page-card" data-id="03">
+      <div class="preview">🏠</div>
+      <span class="num">03</span>
       <div class="body">
         <div class="url">/</div>
         <h3>首页 Home</h3>
@@ -76,9 +108,9 @@
       </div>
     </a>
 
-    <a href="02-detail.html" class="page-card" data-id="02">
+    <a href="04-detail.html" class="page-card" data-id="04">
       <div class="preview">📖</div>
-      <span class="num">02</span>
+      <span class="num">04</span>
       <div class="body">
         <div class="url">/card/:id</div>
         <h3>卡片详情 Detail</h3>
@@ -92,9 +124,9 @@
       </div>
     </a>
 
-    <a href="03-workspace.html" class="page-card" data-id="03">
+    <a href="05-workspace.html" class="page-card" data-id="05">
       <div class="preview">🗂</div>
-      <span class="num">03</span>
+      <span class="num">05</span>
       <div class="body">
         <div class="url">/workspace</div>
         <h3>工作台 Workspace</h3>
@@ -108,9 +140,9 @@
       </div>
     </a>
 
-    <a href="04-dashboard.html" class="page-card" data-id="04">
+    <a href="06-dashboard.html" class="page-card" data-id="06">
       <div class="preview">📊</div>
-      <span class="num">04</span>
+      <span class="num">06</span>
       <div class="body">
         <div class="url">/dashboard</div>
         <h3>仪表盘 Dashboard</h3>
@@ -124,9 +156,9 @@
       </div>
     </a>
 
-    <a href="05-profile.html" class="page-card" data-id="05">
+    <a href="07-profile.html" class="page-card" data-id="07">
       <div class="preview">👤</div>
-      <span class="num">05</span>
+      <span class="num">07</span>
       <div class="body">
         <div class="url">/user/:id</div>
         <h3>个人主页</h3>
@@ -135,38 +167,6 @@
           <span class="chip">Cover 封面</span>
           <span class="chip">标签云</span>
           <span class="chip">公开卡 / 收藏</span>
-        </div>
-        <span class="arrow">→</span>
-      </div>
-    </a>
-
-    <a href="06-login-bookplate.html" class="page-card" data-id="06">
-      <div class="preview">🔐</div>
-      <span class="num">06</span>
-      <div class="body">
-        <div class="url">/login</div>
-        <h3>登录页 Login</h3>
-        <p>单栏居中版式：温暖琥珀渐变背景，DevMind 品牌标志，居中纸面板表单。仅邮箱 + 密码，克制留白。</p>
-        <div class="features">
-          <span class="chip chip-amber">单栏居中</span>
-          <span class="chip">暖琥珀渐变</span>
-          <span class="chip">邮箱 + 密码</span>
-        </div>
-        <span class="arrow">→</span>
-      </div>
-    </a>
-
-    <a href="07-register.html" class="page-card" data-id="07">
-      <div class="preview">✍️</div>
-      <span class="num">07</span>
-      <div class="body">
-        <div class="url">/register</div>
-        <h3>注册页 Register</h3>
-        <p>双栏品牌故事版式：左侧品牌叙事与层叠知识卡，右侧注册纸面板。用户名、邮箱与密码完整建册。</p>
-        <div class="features">
-          <span class="chip chip-amber">双栏版式</span>
-          <span class="chip">知识卡堆叠</span>
-          <span class="chip">用户名 + 邮箱 + 密码</span>
         </div>
         <span class="arrow">→</span>
       </div>

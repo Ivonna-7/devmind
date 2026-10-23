@@ -88,18 +88,19 @@ export const getCardList = async (
   let conditions = [];
   let params = [];
   let paramsIndex = 1;
-  // 访问控制：未登陆只能看公开卡片
-  if (!currentUserId) {
+  // 访问控制：按"查谁的卡片"（userId）决定可见性，而非"是否登录"（currentUserId）
+  if (!userId) {
+    // 全局 feed（首页）：无论是否登录，都只看公开卡片
     conditions.push(`c.visibility = 'public'`);
-  } else if (userId && userId !== currentUserId) {
-    // 已登陆查别人的卡片：只能看别人的公开卡片
+  } else if (userId !== currentUserId) {
+    // 查别人的卡片：只能看别人的公开卡片
     // $${paramIndex} 是模板字符串里嵌入变量。paramIndex 是一个计数器，追踪当前占位符编号
     // 为什么要用计数器？因为不知道前端会传几个参数，占位符编号必须动态递增。
     conditions.push(`c.visibility = 'public' AND c.user_id = $${paramsIndex}`);
     params.push(userId);
     paramsIndex++;
-  } else if (userId && userId === currentUserId) {
-    // 已登陆查自己：全部可见（含私有）：
+  } else {
+    // 查自己的卡片：全部可见（含私有），可选 visibility 过滤
     conditions.push(`c.user_id = $${paramsIndex}`);
     params.push(userId);
     paramsIndex++;
@@ -157,7 +158,9 @@ export const getCardList = async (
        u.nickname AS author_nickname,
        u.avatar AS author_avatar,
        (SELECT COUNT(*) FROM likes WHERE card_id = c.id)::int AS likes_count,
-       (SELECT COUNT(*) FROM favorites WHERE card_id = c.id)::int AS favorites_count
+       (SELECT COUNT(*) FROM favorites WHERE card_id = c.id)::int AS favorites_count,
+       EXISTS(SELECT 1 FROM likes WHERE card_id = c.id AND user_id = $${paramsIndex + 2}) AS liked_by_me,
+       EXISTS(SELECT 1 FROM favorites WHERE card_id = c.id AND user_id = $${paramsIndex + 2}) AS favorited_by_me
     FROM cards c
     LEFT JOIN users u ON c.user_id = u.id
     LEFT JOIN card_tags ct ON c.id=ct.card_id
@@ -167,7 +170,7 @@ export const getCardList = async (
     GROUP BY c.id, u.id
     ${orderBy}
     LIMIT $${paramsIndex} OFFSET $${paramsIndex + 1}`,
-    [...params, limit, offset]
+    [...params, limit, offset, currentUserId || 0]
   );
   // 组装 author 嵌套对象
   const cards = listResult.rows.map((row: any) => {
