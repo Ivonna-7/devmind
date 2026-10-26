@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref } from "vue";
+import { computed, nextTick, onMounted, onUnmounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useMessage } from "naive-ui";
 import { marked } from "marked";
@@ -16,6 +16,7 @@ import { useAuthStore } from "@/stores/auth";
 import type { Card } from "@/types/home";
 import { CARD_TYPES, DIFFICULTY_MAP } from "@/components/card/constants";
 import dayjs from "@/utils/dayjs";
+import { throttleAndDebounce } from "@/utils/throttle";
 import {
   Heart,
   HeartOutline,
@@ -105,6 +106,8 @@ interface TocItem {
 }
 
 const tocItems = ref<TocItem[]>([]);
+// 当前高亮的目录项 id（滚动时自动跟随）
+const activeId = ref("");
 // 详情正文
 const renderedHtml = computed(() => {
   if (!cardDetail.value?.content) return "";
@@ -125,13 +128,25 @@ const sanitizedAnswer = computed(() => {
   return DOMPurify.sanitize(rawHtml);
 });
 
+
+const contentRef = ref<HTMLElement | null>(null);
+// 正文标题元素列表（滚动时计算当前章节）
+let headingEls: HTMLElement[] = [];
+// 触发线：视口顶部下方 96px，与正文标题的 scroll-margin-top（prose.css）保持一致
+const HEADING_OFFSET = 96;
+// 点击目录跳转时锁住滚动计算，直到平滑滚动结束（否则途中会把高亮算成经过的章节，出现 3→2→3 闪跳）
+let scrollLocked = false;
+let scrollLockTimer: ReturnType<typeof setTimeout>;
+
 /** 渲染完成后扫描 h2/h3，生成目录并写入 id 锚点 */
 async function buildToc() {
   tocItems.value = [];
   await nextTick();
   const container = contentRef.value;
   if (!container) return;
-  const headings = container.querySelectorAll("h2, h3");
+  // h1 不进目录 —— 详情页的"大标题"是卡片标题 card.title
+  // h4/h5/h6 不进目录 —— 目录只展示到两级（h2 大节、h3 小节）就够导航了。再深的 h4/h5/h6 进目录会让侧边栏层级太多、太长、太碎，反而难用
+  const headings = container.querySelectorAll<HTMLElement>("h2, h3");
   headings.forEach((el, index) => {
     const level = el.tagName === "H2" ? 2 : 3;
     const text = el.textContent?.trim() || `章节 ${index + 1}`;
@@ -139,14 +154,55 @@ async function buildToc() {
     el.id = id;
     tocItems.value.push({ id, text, level: level as 2 | 3 });
   });
+  headingEls = Array.from(headings);
+  updateActiveHeading();
 }
 
-const contentRef = ref<HTMLElement | null>(null);
+/** 滚动时计算当前章节 */
+function updateActiveHeading() {
+  if (headingEls.length === 0) return;
+  const scrollY = window.scrollY;
+  const isBottom =
+    window.innerHeight + scrollY >= document.body.scrollHeight - 2;
+  // 滚到最顶：不高亮任何项
+  if (scrollY < 1) {
+    activeId.value = "";
+    return;
+  }
+  // 滚到底：高亮最后一项（最后一节太短、越不过触发线的边界）
+  if (isBottom) {
+    activeId.value = headingEls[headingEls.length - 1].id;
+    return;
+  }
+  // 否则取「最后一个顶部已越过触发线」的标题
+  let current = "";
+  for (const el of headingEls) {
+    if (el.getBoundingClientRect().top > HEADING_OFFSET + 4) break;
+    current = el.id;
+  }
+  activeId.value = current;
+}
+
+// 滚动监听：节流 + 防抖（过程中限流，停下来补一次保证准确）
+const onScroll = throttleAndDebounce(() => {
+  if (!scrollLocked) updateActiveHeading();
+}, 100);
 
 function scrollToHeading(id: string) {
+  // 先锁住并手动高亮目标，平滑滚动期间不让 scroll 计算干扰
+  scrollLocked = true;
+  activeId.value = id;
   document
     .getElementById(id)
     ?.scrollIntoView({ behavior: "smooth", block: "start" });
+  // 到达后解锁：scrollend 为主，定时兑底（部分浏览器无 scrollend）
+  clearTimeout(scrollLockTimer);
+  const unlock = () => {
+    scrollLocked = false;
+    window.removeEventListener("scrollend", unlock);
+  };
+  window.addEventListener("scrollend", unlock, { once: true });
+  scrollLockTimer = setTimeout(unlock, 700);
 }
 
 // ---------- 数据加载 ----------
@@ -228,7 +284,8 @@ async function shareCard() {
   }
 }
 
-function goAuthor() {
+// 点击头像跳转个人主页
+function viewProfile() {
   if (cardDetail.value?.author?.id) {
     router.push(`/profile?id=${cardDetail.value.author.id}`);
   }
@@ -246,7 +303,17 @@ async function getCardInfo() {
   }
 }
 
-onMounted(getCardInfo);
+onMounted(() => {
+  // 获取卡片详情
+  getCardInfo();
+  // 监听目录滚动 { passive: true }告诉浏览器**"这个滚动监听器不会调用 preventDefault()"**——即不会阻止默认的滚动行为
+  // 浏览器就能把"滚动渲染"和"你的 JS"并行处理，滚动立刻响应、不卡
+  window.addEventListener("scroll", onScroll, { passive: true });
+});
+onUnmounted(() => {
+  window.removeEventListener("scroll", onScroll);
+  clearTimeout(scrollLockTimer);
+});
 </script>
 
 <template>
@@ -293,13 +360,9 @@ onMounted(getCardInfo);
             class="flex items-center gap-3.5 py-3.5 border-y border-line-soft mb-8"
           >
             <div class="min-w-0 text-[13px] text-ink-500">
-              <button
-                type="button"
-                class="font-semibold text-brand cursor-pointer"
-                @click="goAuthor"
-              >
+              <span class="font-semibold text-brand">
                 {{ cardDetail.author?.username }}
-              </button>
+              </span>
               <span class="mx-1.5 text-ink-300">·</span>
               <span>{{ createdDate }}</span>
               <span class="mx-1.5 text-ink-300">·</span>
@@ -435,18 +498,16 @@ onMounted(getCardInfo);
 
         <!-- 右侧栏 -->
         <aside class="hidden lg:block">
-          <div class="sticky top-24 space-y-4.5">
-            <!-- 作者卡 -->
-            <div
-              class="bg-card border border-line rounded-xl p-5.5 text-center"
-            >
+          <div class="sticky top-24 space-y-8 pl-4 border-l-2 border-brand/30">
+            <!-- 作者批注 -->
+            <div>
               <button
                 type="button"
-                class="block w-full cursor-pointer"
-                @click="goAuthor"
+                class="block cursor-pointer text-left"
+                @click="viewProfile"
               >
                 <div
-                  class="w-14 h-14 rounded-full mx-auto mb-2.5 flex items-center justify-center text-white text-lg font-semibold bg-linear-to-br from-brand to-brand-deep shadow-[0_2px_8px_rgba(180,83,9,0.25)] overflow-hidden"
+                  class="w-12 h-12 rounded-full mb-2.5 flex items-center justify-center text-white text-base font-semibold bg-linear-to-br from-brand to-brand-deep shadow-[0_2px_8px_rgba(180,83,9,0.25)] overflow-hidden"
                 >
                   <img
                     v-if="cardDetail.author?.avatar"
@@ -457,38 +518,35 @@ onMounted(getCardInfo);
                   <template v-else>{{ authorInitials }}</template>
                 </div>
                 <div
-                  class="text-base font-semibold tracking-tight text-ink-900 hover:text-brand transition-colors"
+                  class="font-serif text-lg font-semibold tracking-tight text-ink-900 hover:text-brand transition-colors"
                 >
                   {{ cardDetail.author?.username }}
                 </div>
               </button>
-              <div
-                v-if="cardDetail.author?.bio"
-                class="text-[12.5px] text-ink-500 mt-1"
-              >
-                {{ cardDetail.author.bio }}
+              <div class="text-[12.5px] text-ink-500 mt-1 leading-relaxed">
+                {{ cardDetail.author?.bio || "暂无简介" }}
               </div>
             </div>
 
-            <!-- 目录（客户端从 h2/h3 生成） -->
-            <div
-              v-if="tocItems.length > 0"
-              class="bg-card border border-line rounded-xl p-4.5"
-            >
+            <!-- 目录批注（客户端从 h2/h3 生成） -->
+            <div v-if="tocItems.length > 0">
               <div
-                class="text-xs font-semibold text-ink-500 uppercase tracking-wider mb-3.5"
+                class="text-xs font-semibold text-ink-400 uppercase tracking-wider mb-3"
               >
                 本页目录
               </div>
-              <nav class="text-[13px]">
+              <nav class="text-[13px] space-y-0.5">
                 <button
                   v-for="item in tocItems"
                   :key="item.id"
                   type="button"
-                  class="block w-full text-left py-1.5 pl-2.5 border-l-2 border-transparent text-ink-700 hover:text-brand hover:border-brand transition-colors cursor-pointer"
-                  :class="
-                    item.level === 3 ? 'pl-5.5 text-[12.5px] text-ink-500' : ''
-                  "
+                  class="block w-full text-left px-2.5 py-1 rounded-md transition-colors cursor-pointer"
+                  :class="[
+                    item.id === activeId
+                      ? 'bg-brand-soft text-brand-hover font-medium'
+                      : 'text-ink-700 hover:text-brand',
+                    item.level === 3 ? 'pl-5 text-[12.5px]' : '',
+                  ]"
                   @click="scrollToHeading(item.id)"
                 >
                   {{ item.text }}

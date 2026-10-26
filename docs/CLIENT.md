@@ -302,6 +302,51 @@ npm install dayjs remove-markdown @vicons/ionicons5
 
 `n-tabs` 两个 tab：「公开卡片 (N)」与「收藏的卡片 (N)」，后者用 `isCurrentUser`（登录用户 id === 资料 id）判断，仅本人可见；切换 tab 时按需拉取对应列表。卡片区是响应式栅格（中屏 2 列、大屏 3 列，非瀑布流），复用 `HomeCard`。资料与公开卡片在 `onMounted` 加载，本人额外预拉收藏；搜索上下文的 nonce 变化时重拉当前 tab 列表。
 
+## 11. 卡片详情
+
+详情页是单张卡片的完整阅读视图：Markdown 正文渲染、客户端目录与滚动高亮、点赞 / 收藏 / 分享互动，作者本人额外可置顶 / 编辑。路由为 `card/:id`（`name: detail`），从首页 / 个人主页 / 工作台的卡片标题进入。
+
+### 新增依赖
+
+| 包 | 版本 | 用途 |
+|---|---|---|
+| `marked` | ^18.1.1 | 把卡片正文 / 答案的 Markdown 解析成 HTML |
+| `dompurify` | ^3.4.17 | 对渲染后的 HTML 做 XSS 净化（sanitize）后再 `v-html` |
+
+```bash
+npm install marked dompurify
+```
+
+两者都自带 TypeScript 类型，无需额外安装 `@types`。
+
+### 卡片详情类型与接口
+
+详情复用首页的 `Card` 类（`client/src/types/home.ts`），其中 `answer`（面试题参考答案，可空）、`is_pinned`（是否置顶）字段在详情页用到。
+
+接口文件：`client/src/api/detailService.ts`
+
+- `getCardDetail` — GET `cards/:id`，取单张卡片详情（可选登录；私有卡非作者返回 404）
+
+社交互动复用首页的 `socialService`（`likeCard` / `unlikeCard` / `favoriteCard` / `unfavoriteCard`）；置顶复用工作台的 `workspaceService.togglePin`（PATCH `cards/:id/pin`，返回最新 `is_pinned`）。
+
+### Markdown 排版样式
+
+样式文件：`client/src/styles/prose.css`
+
+正文容器加 `.detail-prose` 类，统一 Markdown 元素的排版：标题、段落、链接、行内 / 块级代码、引用、有序 / 无序列表、图片、表格、分隔线。标题设 `scroll-margin-top: 96px`，与目录跳转的触发线对齐，避免锚点定位被吸顶页头遮挡。另有 `.detail-prose--compact` 紧凑变体（仅覆盖间距 / 字号，颜色描边沿用基类），供弹窗预览等小空间场景复用。
+
+### 滚动节流工具
+
+工具文件：`client/src/utils/throttle.ts`
+
+`throttleAndDebounce(fn, delay)`：高频滚动事件按 `delay` 间隔触发（节流），停止滚动后再补一次（防抖），保证目录高亮的最终状态准确又不过度计算。
+
+### 详情视图
+
+页面文件：`client/src/views/detail/DetailView.vue`
+
+本页目录由 `buildToc` 在 `nextTick` 后扫描正文 `h2` / `h3`、写入 `heading-N` 锚点生成；滚动时经 `throttleAndDebounce` 节流调用 `updateActiveHeading`（算法参考 VitePress：滚到顶不高亮、滚到底高亮末项、否则取最后一个越过触发线的标题）。点击目录项平滑滚动到对应标题，期间用 `scrollLocked` 配合 `scrollend` 事件 + 定时兜底锁住计算，避免高亮在章节间闪跳；`onUnmounted` 移除监听并清理定时器。
+
 ---
 
 *本文档随前端开发进展持续更新。*
