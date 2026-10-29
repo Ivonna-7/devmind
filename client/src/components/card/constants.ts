@@ -10,30 +10,35 @@ export const CARD_TYPES: {
   value: CardType;
   label: string;
   name: string;
+  color: string;
   classes: string;
 }[] = [
   {
     value: "note",
     label: "📝 笔记",
     name: "笔记",
+    color: "#60A5FA",
     classes: "bg-info-soft text-info border-[#bae6fd]",
   },
   {
     value: "question",
     label: "💡 面试题",
     name: "面试题",
+    color: "#A78BFA",
     classes: "bg-brand-soft text-brand-hover border-[#fde68a]",
   },
   {
     value: "bug",
     label: "🐛 Bug 日记",
     name: "Bug 日记",
+    color: "#FB923C",
     classes: "bg-bad-soft text-bad border-[#fecaca]",
   },
   {
     value: "til",
     label: "✨ TIL",
     name: "TIL",
+    color: "#34D399",
     classes: "bg-ok-soft text-ok border-[#bbf7d0]",
   },
 ];

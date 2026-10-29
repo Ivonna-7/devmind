@@ -761,3 +761,79 @@ alias: {
 `data` 是 HTTP 请求体；`config` 是 Axios 请求配置，例如 `params`、`headers`、`timeout`。GET 的查询条件放在 `config.params` 中。如果 POST/PUT/PATCH 请求没有请求体但需要传递 config，应在 config 前将 data 传为 `undefined`。
 
 `params` 和 `payload` 只是普通的变量命名约定，不是 Axios 关键字：`params` 通常表示查询参数，`payload` 通常表示 POST/PUT/PATCH 的请求体数据。
+
+---
+
+## ECharts 渲染器（Renderer）
+
+ECharts 画图分两步：
+
+1. **算**：根据配置算出“每个图形画在哪、多大、什么颜色”
+2. **画**：把算好的图形真正绘制到页面上
+
+**渲染器就是第 2 步的执行者**——决定“用什么技术把图画出来”。它不管画的是什么图（柱状 / 饼图 / 热力图都行），只管“怎么落到屏幕上”。
+
+ECharts 提供两种，二选一：
+
+| 渲染器 | 用什么画 | 特点 |
+|---|---|---|
+| CanvasRenderer | `<canvas>` 位图 | 性能好，数据量大/动画多时流畅，默认首选 |
+| SVGRenderer | `<svg>` 矢量 | DOM 多时省内存、可无限缩放不糊、适合打印 / SSR |
+
+### Canvas vs SVG 的本质区别
+
+| | Canvas（位图） | SVG（矢量） |
+|---|---|---|
+| 成图形式 | 一整张像素画布 | 一堆 DOM 标签（`<rect>`/`<path>` 等） |
+| 放大 | 会糊（像素点被拉大） | 不糊（矢量按公式重算） |
+| 元素多时 | 快（就一张画布） | 慢（DOM 节点越多越吃内存） |
+| 适合 | 大数据量、频繁动画 | 元素少、要缩放/打印/导出 |
+
+> 必须注册至少一个渲染器，否则图一片空白甚至报错。
+
+### 坑 1：vue-echarts 自定义元素默认 `display:inline` → 空白
+
+vue-echarts 的 `<v-chart>` 根元素是自定义元素 `<x-vue-echarts>`，浏览器默认把未知元素当 `display:inline`。**行内元素不吃 height，高度塌成 0，图完全不显示。**
+
+两种解法：
+```ts
+// 解法 A：全局引官方 css（内容就是把它设成 display:block; width/height:100%）
+import "vue-echarts/style.css";
+```
+```html
+<!-- 解法 B：每个 v-chart 内联 display:block（不污染全局，组件自给自足）-->
+<v-chart :option="option" style="display: block; width: 100%; height: 142px" autoresize />
+```
+
+### 坑 2：heatmap 系列强制依赖 visualMap
+
+heatmap 类型的 series **必须**配 visualMap，否则直接抛错 `Heatmap must use with visualMap`。即使不想显示 visualMap 控件，也要 `show: false` 保留它（靠它把数值映射成颜色）。
+
+### 按需引入：哪些要 `use()` 注册
+
+ECharts 按需引入时，要把用到的模块用 `use([...])` 注册。规则：
+
+**option 里的顶层配置块（calendar / visualMap / tooltip / title / legend / grid ...）和 `series.type`，各要注册一个对应模块；块内部的子属性不用。**
+
+| option 里写的 | 是否要注册 | 注册什么 |
+|---|---|---|
+| 顶层块 `visualMap: {...}` | ✅ | `VisualMapComponent` |
+| 顶层块 `calendar: {...}` | ✅ | `CalendarComponent` |
+| `series.type: "pie"` | ✅ | `PieChart` |
+| `series.type: "heatmap"` | ✅ | `HeatmapChart` |
+| 子属性 `visualMap.pieces` | ❌ | （跟着 VisualMapComponent 来） |
+| 子属性 `series.itemStyle` / `data` / `coordinateSystem` | ❌ | （跟着 series 类型来） |
+
+漏注册顶层块 → 那块配置静默失效（或报错）；漏注册 series 类型 → 图画不出。
+
+### legend vs visualMap
+
+两个都是图表的「颜色说明控件」，但解决的问题完全不同：
+
+| | legend（图例） | visualMap（视觉映射） |
+|---|---|---|
+| 用途 | 离散分类：每个颜色 = 一个独立类别 | 数值映射：颜色 = 数值大小的渐变/分段 |
+| 回答的问题 | “蓝色是哪一类？” | “颜色越深代表数字越大还是越小？” |
+| 适合 | 饼图、柱图、折线多系列 | 热力图、地图、散点密度 |
+
+**一句话**：类别用 legend，数值深浅用 visualMap。

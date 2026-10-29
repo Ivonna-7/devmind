@@ -1,72 +1,95 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <title>DevMind · 仪表盘</title>
 <link rel="stylesheet" href="tokens.css">
 <style>
-  .dash-head { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 22px; }
-  .dash-title { font-family: "Instrument Serif", serif; font-size: 32px; font-weight: 600; letter-spacing: -0.01em; }
+  /* 页头：衬线体标题 + 用户问候 */
+  .dash-head { margin-bottom: 24px; }
+  .dash-title { font-family: var(--font-serif); font-size: 32px; font-weight: 600; letter-spacing: -0.01em; color: var(--ink-900); }
   .dash-sub { font-size: 13.5px; color: var(--ink-500); margin-top: 4px; }
 
+  /* 概览统计卡（StatCards.vue）：渐变暖底 + 实心图标徽章 + 英文小标签 + 衬线体大数字 */
   .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin-bottom: 24px; }
+  .stat-card { border: 1px solid var(--line-soft); border-radius: 18px; padding: 20px 24px; }
+  .stat-card .top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .stat-card .ico { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #fff; flex-shrink: 0; }
+  .stat-card .ico svg { width: 18px; height: 18px; }
+  .stat-card .en { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-400); }
+  .stat-card .num { font-family: var(--font-serif); font-size: 40px; line-height: 1; color: var(--ink-900); }
+  .stat-card .lbl { font-size: 12px; color: var(--ink-500); margin-top: 6px; }
 
-  .panel { background: #FFFFFF; border: 1px solid var(--line); border-radius: 14px; padding: 22px 24px; }
-  .panel-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
-  .panel-title { font-size: 15.5px; font-weight: 600; color: var(--ink-900); letter-spacing: -0.005em; }
-  .panel-sub { font-size: 12px; color: var(--ink-500); }
+  /* 图表面板：白底卡片（真实 ECharts 把标题画在画布内，此处用 panel-head 近似） */
+  .panel { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 22px 24px; }
+  .panel-head { margin-bottom: 16px; }
+  .panel-head.row { display: flex; align-items: flex-start; justify-content: space-between; }
+  .panel-title { font-size: 15.5px; font-weight: 600; color: var(--ink-900); }
+  .panel-sub { font-size: 12px; color: var(--ink-500); margin-top: 2px; }
 
-  /* Heatmap */
-  .heatmap-wrap { overflow-x: auto; padding-bottom: 6px; }
-  .heatmap { display: inline-grid; grid-auto-flow: column; grid-template-rows: repeat(7, 11px); gap: 3px; padding: 4px 0; }
-  .hm-cell { width: 11px; height: 11px; border-radius: 2.5px; background: #F1EEE8; }
-  .hm-1 { background: #FEF3C7; }
-  .hm-2 { background: #FDE68A; }
-  .hm-3 { background: #F59E0B; }
-  .hm-4 { background: #B45309; }
-  .hm-legend { display: flex; align-items: center; gap: 5px; font-size: 11.5px; color: var(--ink-500); justify-content: flex-end; margin-top: 8px; }
+  /* 学习热力图（真实 ECharts 日历热力图：cellSize ["auto",14] → 宽度横向拉满、高 14px；左留 44px 给星期标） */
+  .hm-legend { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--ink-500); }
   .hm-legend .box { width: 11px; height: 11px; border-radius: 2.5px; }
-  .hm-months { display: flex; gap: 14px; font-size: 10.5px; color: var(--ink-500); margin-bottom: 6px; padding-left: 20px; }
-  .hm-row-wrap { display: flex; align-items: center; gap: 6px; }
-  .hm-day-labels { display: grid; grid-template-rows: repeat(7, 11px); gap: 3px; font-size: 9.5px; color: var(--ink-400); font-family: "JetBrains Mono", monospace; line-height: 11px; }
+  .hm-cell.hm-1, .hm-legend .box.hm-1 { background: #FEF3C7; } .hm-cell.hm-2, .hm-legend .box.hm-2 { background: #FDE68A; } .hm-cell.hm-3, .hm-legend .box.hm-3 { background: #F59E0B; } .hm-cell.hm-4, .hm-legend .box.hm-4 { background: #B45309; }
+  .hm-body { display: flex; gap: 8px; }
+  .hm-days { display: grid; grid-template-rows: repeat(7, 14px); gap: 3px; margin-top: 22px; font-size: 10px; color: var(--ink-400); font-family: var(--font-mono); line-height: 14px; }
+  /* 格子区满宽：53 列均分（1fr），月份标签行 + 7 行格子共用同一套列网格 */
+  .hm-track { flex: 1; min-width: 0; display: grid; grid-template-columns: repeat(53, 1fr); grid-template-rows: 16px auto; gap: 3px; }
+  .hm-month-label { grid-row: 1; font-size: 11px; color: var(--ink-500); white-space: nowrap; }
+  .hm-col { grid-row: 2; display: grid; grid-template-rows: repeat(7, 14px); gap: 3px; }
+  .hm-cell { height: 14px; border-radius: 2.5px; background: #F1EEE8; }
 
-  /* Two-column panels */
-  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 18px; }
+  /* 三栏图表（掌握度环形 + 类型条形 + 技能雷达），真实 md:2 / lg:3 列 */
+  .chart-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-bottom: 24px; }
+  .chart-grid > .panel { min-width: 0; }
+  /* 真实三张图是 270px 画布、标题画在画布内，故标题放进 270px 容器顶部，图形占剩余 */
+  .chart-body { height: 270px; display: flex; flex-direction: column; }
+  .chart-body .panel-head { margin-bottom: 0; flex-shrink: 0; }
+  .chart-body .chart-plot { flex: 1; min-height: 0; }
 
-  /* Donut + mastery */
-  .donut-wrap { display: flex; align-items: center; gap: 28px; }
-  .donut { width: 160px; height: 160px; border-radius: 50%; position: relative; flex-shrink: 0; background: conic-gradient(#E7E5E4 0 23.3%, #FFFFFF 23.3% 23.8%, #FBBF24 23.8% 59.1%, #FFFFFF 59.1% 59.6%, #60A5FA 59.6% 87.6%, #FFFFFF 87.6% 88.1%, #4ADE80 88.1% 99.5%, #FFFFFF 99.5% 100%); }
-  .donut::before { content: ""; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 108px; height: 108px; border-radius: 50%; background: #FFFFFF; box-shadow: inset 0 0 0 1px var(--line-soft); }
-  .donut .cx { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); text-align: center; z-index: 1; }
-  .donut .cx .big { font-family: "Instrument Serif", serif; font-size: 44px; font-weight: 400; color: var(--ink-900); line-height: 1; letter-spacing: -0.02em; }
-  .donut .cx .lbl { font-size: 10.5px; color: var(--ink-400); margin-top: 4px; letter-spacing: 0.06em; text-transform: uppercase; }
-  .legend-list { flex: 1; font-size: 13px; }
-  .legend-list .row { display: flex; align-items: center; gap: 12px; padding: 8px 0; }
+  /* 掌握度环形饼图：真实 center["33%","62%"] 饼图偏左、legend right:8 图例贴最右 */
+  .donut-wrap { display: flex; align-items: center; height: 100%; }
+  .donut { width: 189px; height: 189px; border-radius: 50%; position: relative; flex-shrink: 0; margin-left: 4px;
+    background: conic-gradient(#38BDF8 0 23.8%, #fff 23.8% 24.3%, #FACC15 24.3% 59.9%, #fff 59.9% 60.4%, #FB923C 60.4% 88.9%, #fff 88.9% 89.4%, #10B981 89.4% 100%); }
+  .donut::before { content: ""; position: absolute; inset: 17%; border-radius: 50%; background: var(--card); }
+  .legend-list { margin-left: auto; margin-right: 8px; font-size: 12.5px; flex-shrink: 0; }
+  .legend-list .row { display: flex; align-items: center; gap: 10px; padding: 7px 0; }
   .legend-list .dot { width: 10px; height: 10px; border-radius: 999px; flex-shrink: 0; }
-  .legend-list .name { flex: 1; color: var(--ink-700); }
-  .legend-list .count { font-family: "JetBrains Mono", monospace; font-size: 12.5px; color: var(--ink-900); font-weight: 600; }
-  .legend-list .pct { font-size: 11.5px; color: var(--ink-500); margin-left: 8px; min-width: 36px; text-align: right; }
+  .legend-list .name { color: #57534e; }
 
-  /* Radar */
-  .radar-wrap { display: flex; justify-content: center; align-items: center; padding: 10px 0; }
-  .radar { width: 280px; height: 260px; }
+  /* 卡片类型分布（真实 ECharts 横向条形：barWidth 14、类目在 grid 高度内 space-around 均分，柱右端标数值） */
+  .bar-list { display: flex; flex-direction: column; justify-content: space-around; height: 100%; }
+  .bar-row { display: flex; align-items: center; gap: 12px; }
+  .bar-row .bname { width: 58px; font-size: 12.5px; color: #57534e; text-align: right; flex-shrink: 0; }
+  .bar-row .track { flex: 1; min-width: 0; }
+  .bar-row .fill { display: block; height: 14px; border-radius: 4px; }
+  .bar-row .bval { font-size: 12px; font-weight: 600; color: var(--ink-900); flex-shrink: 0; }
 
-  /* Today review */
-  .review-card { background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%); border: 1px solid #FDE68A; border-radius: 14px; padding: 28px 32px; }
-  .review-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
-  .review-progress { height: 6px; background: rgba(180,83,9,0.15); border-radius: 999px; overflow: hidden; margin-bottom: 24px; }
-  .review-progress .fill { height: 100%; width: 33.3%; background: var(--brand); border-radius: 999px; }
-  .review-q { font-size: 20px; font-weight: 600; color: var(--ink-900); margin-bottom: 10px; letter-spacing: -0.01em; }
-  .review-hint { font-size: 13.5px; color: #92400E; margin-bottom: 20px; }
-  .review-actions { display: flex; gap: 10px; }
-  .review-btn { flex: 1; padding: 12px 18px; border-radius: 10px; border: 1.5px solid; background: #FFFFFF; font-family: inherit; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; gap: 6px; }
-  .review-btn:hover { transform: translateY(-1px); }
-  .review-btn.blur { border-color: #D6D3D1; color: var(--ink-700); }
-  .review-btn.blur:hover { background: var(--soft); }
-  .review-btn.know { border-color: #60A5FA; color: #1D4ED8; }
-  .review-btn.know:hover { background: #DBEAFE; }
-  .review-btn.master { border-color: #86EFAC; color: #15803D; }
-  .review-btn.master:hover { background: #DCFCE7; }
+  /* 技能雷达（ECharts radar，棕色描边 + 半透明填充） */
+  .radar-wrap { display: flex; justify-content: center; align-items: center; height: 100%; }
+
+  /* 今日复习（ReviewPanel.vue）：堆叠卡牌 */
+  .review-left { padding-left: 24px; }
+  .review-headline { font-size: 19px; font-weight: 600; color: var(--ink-900); }
+  .review-sub { font-size: 12px; color: var(--ink-500); margin-top: 4px; }
+  .deck-wrap { position: relative; margin-top: 20px; }
+  .deck-top { position: relative; z-index: 3; }
+  .deck-peek { position: absolute; inset: 0; border-radius: 14px; border: 1px solid #fde68a; }
+  .deck-peek-1 { z-index: 2; background: #fef3c7; transform: translate(-8px, -8px); }
+  .deck-peek-2 { z-index: 1; background: #fdecc8; transform: translate(-16px, -16px); }
+  .review-card { background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border: 1px solid #fde68a; border-radius: 14px; padding: 28px 32px; }
+  .review-card .rc-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .review-card .rc-badge { display: inline-block; padding: 3px 11px; font-size: 11px; font-weight: 600; transform: rotate(-2deg); border-radius: 3px; background: var(--brand-soft); color: var(--brand-hover); border: 1px solid #fde68a; }
+  .review-card .rc-switch { font-size: 13px; color: var(--brand-hover); font-weight: 500; cursor: pointer; }
+  .review-card .rc-title { font-size: 20px; font-weight: 600; color: var(--ink-900); margin-bottom: 10px; line-height: 1.4; }
+  .review-card .rc-answer-toggle { font-size: 13px; font-weight: 600; color: var(--brand-hover); cursor: pointer; margin-bottom: 16px; }
+  .review-card .rc-hint { font-size: 13.5px; color: var(--brand-hover); margin-bottom: 16px; }
+  .review-card .rc-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
+  .review-card .rc-actions .pre { font-size: 12px; color: var(--ink-400); margin-right: auto; }
+  /* 掌握度按钮：纯白底（appearance:none 压掉系统默认按钮色）+ 浅灰描边 + 彩色小圆点 */
+  .mastery-btn { appearance: none; -webkit-appearance: none; display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; border: 1px solid #e7e2da; background: #ffffff; font-family: inherit; font-size: 13px; font-weight: 500; color: var(--ink-700); cursor: pointer; transition: border-color 0.15s; }
+  .mastery-btn:hover { border-color: #fcd34d; }
+  .mastery-btn .d { width: 8px; height: 8px; border-radius: 999px; flex-shrink: 0; }
 </style>
 </head>
 <body>
@@ -78,7 +101,7 @@
       <span class="logo-text">DevMind</span>
     </a>
     <div class="header-banner">
-      <span class="pill"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>仪表盘</span>
+      <span class="pill"><svg width="18" height="18" viewBox="0 0 512 512" fill="none" stroke="currentColor" stroke-width="32" stroke-linecap="round" stroke-linejoin="round"><rect x="48" y="48" width="176" height="176" rx="20" ry="20"/><rect x="288" y="48" width="176" height="176" rx="20" ry="20"/><rect x="48" y="288" width="176" height="176" rx="20" ry="20"/><rect x="288" y="288" width="176" height="176" rx="20" ry="20"/></svg>仪表盘</span>
     </div>
     <nav class="nav">
       <a href="03-home.html">首页</a>
@@ -95,46 +118,56 @@
   </div>
 </header>
 
-<div class="container page-body">
+<div class="container" style="padding-top: 32px; padding-bottom: 40px;">
 
+  <!-- 页头 -->
   <div class="dash-head">
-    <div>
-      <div class="dash-title">你的学习仪表盘</div>
-      <div class="dash-sub">Ivonna · 今天记一点，明天少一点。</div>
-    </div>
-    
+    <div class="dash-title">你的学习仪表盘</div>
+    <div class="dash-sub">Ivonna · 今天记一点，明天少一点。</div>
   </div>
 
-  <!-- 统计卡 -->
+  <!-- 概览统计卡：卡片总数 / 获得点赞 / 被收藏 / 已掌握 -->
   <div class="stats-grid">
-    <div class="stat">
-      <div class="label">📝 卡片总数</div>
-      <div class="value">42</div>
-      
+    <div class="stat-card" style="background: linear-gradient(135deg,#fffbeb,#fef3c7);">
+      <div class="top">
+        <span class="ico" style="background:#b45309;"><svg viewBox="0 0 512 512" fill="none" stroke="currentColor" stroke-width="32"><rect x="32" y="96" width="64" height="368" rx="16" ry="16" stroke-linejoin="round"/><path stroke-linecap="round" stroke-linejoin="round" d="M112 224h128"/><path stroke-linecap="round" stroke-linejoin="round" d="M112 400h128"/><rect x="112" y="160" width="128" height="304" rx="16" ry="16" stroke-linejoin="round"/><rect x="256" y="48" width="96" height="416" rx="16" ry="16" stroke-linejoin="round"/><path stroke-linejoin="round" d="M422.46 96.11l-40.4 4.25c-11.12 1.17-19.18 11.57-17.93 23.1l34.92 321.59c1.26 11.53 11.37 20 22.49 18.84l40.4-4.25c11.12-1.17 19.18-11.57 17.93-23.1L445 115c-1.31-11.58-11.42-20.06-22.54-18.89z"/></svg></span>
+        <span class="en">CARDS</span>
+      </div>
+      <div class="num">42</div>
+      <div class="lbl">卡片总数</div>
     </div>
-    <div class="stat">
-      <div class="label">❤ 获得点赞</div>
-      <div class="value">128</div>
-      
+    <div class="stat-card" style="background: linear-gradient(135deg,#fffbeb,#fee2e2);">
+      <div class="top">
+        <span class="ico" style="background:#b91c1c;"><svg viewBox="0 0 512 512" fill="none" stroke="currentColor" stroke-width="32"><path d="M352.92 80C288 80 256 144 256 144s-32-64-96.92-64c-52.76 0-94.54 44.14-95.08 96.81c-1.1 109.33 86.73 187.08 183 252.42a16 16 0 0 0 18 0c96.26-65.34 184.09-143.09 183-252.42c-.54-52.67-42.32-96.81-95.08-96.81z"/></svg></span>
+        <span class="en">LIKES</span>
+      </div>
+      <div class="num">128</div>
+      <div class="lbl">获得点赞</div>
     </div>
-    <div class="stat">
-      <div class="label">☆ 被收藏</div>
-      <div class="value">34</div>
-      
+    <div class="stat-card" style="background: linear-gradient(135deg,#fffdf5,#fef9c3);">
+      <div class="top">
+        <span class="ico" style="background:#ca8a04;"><svg viewBox="0 0 512 512" fill="currentColor"><path d="M394 480a16 16 0 0 1-9.39-3L256 383.76L127.39 477a16 16 0 0 1-24.55-18.08L153 310.35L23 221.2a16 16 0 0 1 9-29.2h160.38l48.4-148.95a16 16 0 0 1 30.44 0l48.4 149H480a16 16 0 0 1 9.05 29.2L359 310.35l50.13 148.53A16 16 0 0 1 394 480z"/></svg></span>
+        <span class="en">SAVED</span>
+      </div>
+      <div class="num">34</div>
+      <div class="lbl">被收藏</div>
     </div>
-    <div class="stat">
-      <div class="label">✓ 已掌握</div>
-      <div class="value">5</div>
-      
+    <div class="stat-card" style="background: linear-gradient(135deg,#f6fff9,#dcfce7);">
+      <div class="top">
+        <span class="ico" style="background:#15803d;"><svg viewBox="0 0 512 512" fill="none" stroke="currentColor" stroke-width="32" stroke-linecap="round" stroke-linejoin="round"><path d="M176 464h160"/><path d="M256 464V336"/><path d="M384 224c0-50.64-.08-134.63-.12-160a16 16 0 0 0-16-16l-223.79.26a16 16 0 0 0-16 15.95c0 30.58-.13 129.17-.13 159.79c0 64.28 83 112 128 112S384 288.28 384 224z"/><path d="M128 96H48v16c0 55.22 33.55 112 80 112"/><path d="M384 96h80v16c0 55.22-33.55 112-80 112"/></svg></span>
+        <span class="en">MASTERED</span>
+      </div>
+      <div class="num">5</div>
+      <div class="lbl">已掌握</div>
     </div>
   </div>
 
-  <!-- 热力图 -->
-  <div class="panel">
-    <div class="panel-head">
+  <!-- 学习热力图（ECharts 日历热力图，一年范围） -->
+  <div class="panel" style="margin-bottom: 24px;">
+    <div class="panel-head row">
       <div>
         <div class="panel-title">学习热力图</div>
-        <div class="panel-sub">过去 12 个月的学习活动 · 共 <strong>167</strong> 天打卡</div>
+        <div class="panel-sub">过去一年的学习活动 · 共 167 天打卡</div>
       </div>
       <div class="hm-legend">
         <span>少</span>
@@ -146,149 +179,178 @@
         <span>多</span>
       </div>
     </div>
-
-    <div class="hm-months"><span style="margin-left: 0;">5月</span><span>6月</span><span>7月</span><span>8月</span><span style="margin-left: 22px;">9月</span><span>10月</span><span style="margin-left: 22px;">11月</span><span>12月</span><span style="margin-left: 22px;">1月</span><span>2月</span><span style="margin-left: 22px;">3月</span><span>4月</span></div>
-
-    <div class="hm-row-wrap">
-      <div class="hm-day-labels">
-        <span></span><span>Mon</span><span></span><span>Wed</span><span></span><span>Fri</span><span></span>
-      </div>
-      <div class="heatmap-wrap">
-        <div class="heatmap" id="heatmap"></div>
-      </div>
+    <div class="hm-body">
+      <div class="hm-days"><span></span><span>Mon</span><span></span><span>Wed</span><span></span><span>Fri</span><span></span></div>
+      <div class="hm-track" id="heatmap"></div>
     </div>
   </div>
 
-  <div class="two-col">
-    <!-- 掌握度分布 -->
+  <!-- 三栏：掌握度分布 + 卡片类型分布 + 知识版图 -->
+  <div class="chart-grid">
+    <!-- 掌握度环形 -->
     <div class="panel">
-      <div class="panel-head">
-        <div>
+      <div class="chart-body">
+        <div class="panel-head">
           <div class="panel-title">掌握度分布</div>
           <div class="panel-sub">42 张卡片的记忆状态</div>
         </div>
-      </div>
-      <div class="donut-wrap">
-        <div class="donut">
-          <div class="cx">
-            <div class="big">42</div>
-            <div class="lbl">总卡片</div>
-          </div>
-        </div>
-        <div class="legend-list">
-          <div class="row">
-            <span class="dot" style="background:#E7E5E4;"></span>
-            <span class="name">新建</span>
-            <span class="count">10</span><span class="pct">23.8%</span>
-          </div>
-          <div class="row">
-            <span class="dot" style="background:#FBBF24;"></span>
-            <span class="name">模糊</span>
-            <span class="count">15</span><span class="pct">35.7%</span>
-          </div>
-          <div class="row">
-            <span class="dot" style="background:#60A5FA;"></span>
-            <span class="name">记得</span>
-            <span class="count">12</span><span class="pct">28.6%</span>
-          </div>
-          <div class="row">
-            <span class="dot" style="background:#4ADE80;"></span>
-            <span class="name">已掌握</span>
-            <span class="count">5</span><span class="pct">11.9%</span>
+        <div class="chart-plot">
+          <div class="donut-wrap">
+            <div class="donut"></div>
+            <div class="legend-list">
+              <div class="row"><span class="dot" style="background:#38BDF8;"></span><span class="name">新建</span></div>
+              <div class="row"><span class="dot" style="background:#FACC15;"></span><span class="name">模糊</span></div>
+              <div class="row"><span class="dot" style="background:#FB923C;"></span><span class="name">记得</span></div>
+              <div class="row"><span class="dot" style="background:#10B981;"></span><span class="name">已掌握</span></div>
+            </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- 标签雷达 -->
+    <!-- 卡片类型分布（横向条形） -->
     <div class="panel">
-      <div class="panel-head">
-        <div>
-          <div class="panel-title">技能雷达</div>
-          <div class="panel-sub">按标签分布的卡片数量</div>
+      <div class="chart-body">
+        <div class="panel-head">
+          <div class="panel-title">卡片类型分布</div>
+          <div class="panel-sub">笔记 / 面试题 / Bug / TIL 各有多少张</div>
+        </div>
+        <div class="chart-plot">
+          <div class="bar-list">
+            <div class="bar-row"><span class="bname">笔记</span><span class="track"><span class="fill" style="width:100%; background:#60A5FA;"></span></span><span class="bval">18</span></div>
+            <div class="bar-row"><span class="bname">面试题</span><span class="track"><span class="fill" style="width:67%; background:#A78BFA;"></span></span><span class="bval">12</span></div>
+            <div class="bar-row"><span class="bname">Bug 日记</span><span class="track"><span class="fill" style="width:44%; background:#FB923C;"></span></span><span class="bval">8</span></div>
+            <div class="bar-row"><span class="bname">TIL</span><span class="track"><span class="fill" style="width:22%; background:#34D399;"></span></span><span class="bval">4</span></div>
+          </div>
         </div>
       </div>
-      <div class="radar-wrap">
-        <svg class="radar" viewBox="-120 -115 240 230">
-          <g fill="none" stroke="#E7E5E4" stroke-width="1">
-            <polygon points="0,-20 17.32,-10 17.32,10 0,20 -17.32,10 -17.32,-10" />
-            <polygon points="0,-40 34.64,-20 34.64,20 0,40 -34.64,20 -34.64,-20" />
-            <polygon points="0,-60 51.96,-30 51.96,30 0,60 -51.96,30 -51.96,-30" />
-            <polygon points="0,-80 69.28,-40 69.28,40 0,80 -69.28,40 -69.28,-40" />
-            <polygon points="0,-100 86.60,-50 86.60,50 0,100 -86.60,50 -86.60,-50" />
-          </g>
-          <g stroke="#E7E5E4" stroke-width="1">
-            <line x1="0" y1="0" x2="0" y2="-100" />
-            <line x1="0" y1="0" x2="86.60" y2="-50" />
-            <line x1="0" y1="0" x2="86.60" y2="50" />
-            <line x1="0" y1="0" x2="0" y2="100" />
-            <line x1="0" y1="0" x2="-86.60" y2="50" />
-            <line x1="0" y1="0" x2="-86.60" y2="-50" />
-          </g>
-          <polygon points="0,-95 60.62,-35 51.96,30 0,80 -73.61,42.5 -56.29,-32.5" fill="rgba(180,83,9,0.18)" stroke="#B45309" stroke-width="1.5" stroke-linejoin="round" />
-          <g fill="#B45309">
-            <circle cx="0" cy="-95" r="3.5" />
-            <circle cx="60.62" cy="-35" r="3.5" />
-            <circle cx="51.96" cy="30" r="3.5" />
-            <circle cx="0" cy="80" r="3.5" />
-            <circle cx="-73.61" cy="42.5" r="3.5" />
-            <circle cx="-56.29" cy="-32.5" r="3.5" />
-          </g>
-          <g font-size="11" font-weight="500" fill="#44403C" text-anchor="middle" font-family="Inter, sans-serif">
-            <text x="0" y="-108">JavaScript</text>
-            <text x="104" y="-52">Vue 3</text>
-            <text x="104" y="55">CSS</text>
-            <text x="0" y="114">PostgreSQL</text>
-            <text x="-104" y="55">Git</text>
-            <text x="-104" y="-52">TypeScript</text>
-          </g>
-        </svg>
+    </div>
+
+    <!-- 技能雷达（知识版图） -->
+    <div class="panel">
+      <div class="chart-body">
+        <div class="panel-head">
+          <div class="panel-title">知识版图</div>
+          <div class="panel-sub">高频标签勾勒的知识轮廓</div>
+        </div>
+        <div class="chart-plot">
+          <div class="radar-wrap">
+            <svg viewBox="-160 -125 320 250" style="height: 100%; width: auto; max-width: 100%;">
+              <g fill="none" stroke="#E7E5E4" stroke-width="1">
+                <polygon points="0,-20 17.32,-10 17.32,10 0,20 -17.32,10 -17.32,-10" />
+                <polygon points="0,-40 34.64,-20 34.64,20 0,40 -34.64,20 -34.64,-20" />
+                <polygon points="0,-60 51.96,-30 51.96,30 0,60 -51.96,30 -51.96,-30" />
+                <polygon points="0,-80 69.28,-40 69.28,40 0,80 -69.28,40 -69.28,-40" />
+                <polygon points="0,-100 86.60,-50 86.60,50 0,100 -86.60,50 -86.60,-50" />
+              </g>
+              <g stroke="#E7E5E4" stroke-width="1">
+                <line x1="0" y1="0" x2="0" y2="-100" /><line x1="0" y1="0" x2="86.60" y2="-50" />
+                <line x1="0" y1="0" x2="86.60" y2="50" /><line x1="0" y1="0" x2="0" y2="100" />
+                <line x1="0" y1="0" x2="-86.60" y2="50" /><line x1="0" y1="0" x2="-86.60" y2="-50" />
+              </g>
+              <polygon points="0,-95 60.62,-35 51.96,30 0,80 -73.61,42.5 -56.29,-32.5" fill="rgba(180,83,9,0.18)" stroke="#B45309" stroke-width="1.2" stroke-linejoin="round" />
+              <g fill="#B45309"><circle cx="0" cy="-95" r="3"/><circle cx="60.62" cy="-35" r="3"/><circle cx="51.96" cy="30" r="3"/><circle cx="0" cy="80" r="3"/><circle cx="-73.61" cy="42.5" r="3"/><circle cx="-56.29" cy="-32.5" r="3"/></g>
+              <g font-size="11" fill="#44403C" text-anchor="middle" font-family="Inter, sans-serif">
+                <text x="0" y="-106">设计模式 (31)</text>
+                <text x="100" y="-50">Vue 3 (24)</text>
+                <text x="100" y="56">CSS (18)</text>
+                <text x="0" y="114">PostgreSQL (12)</text>
+                <text x="-100" y="56">Git (9)</text>
+                <text x="-100" y="-50">TypeScript (22)</text>
+              </g>
+            </svg>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- 今日复习 -->
-  <div style="margin-top: 24px;">
-    <div class="panel-head" style="margin-bottom: 14px;">
-      <div>
-        <div class="panel-title" style="font-size: 19px;">🔥 今日复习</div>
-        <div class="panel-sub">遗忘曲线推荐给你 · 3 张卡片</div>
-      </div>
-    </div>
-    <div class="review-card">
-      <div class="review-head">
-        <span class="chip chip-amber">💡 面试题 · 中等</span>
-        <span style="font-size: 13px; color: #92400E; font-weight: 500;">进度 1 / 3</span>
-      </div>
-      <div class="review-progress"><div class="fill"></div></div>
-      <div class="review-q">JavaScript 中什么是闭包？</div>
-      <div class="review-hint">请先回忆知识点，再选择你的掌握程度：</div>
-      <div class="review-actions">
-        <button class="review-btn blur">模糊</button>
-        <button class="review-btn know">记得</button>
-        <button class="review-btn master">已掌握</button>
+  <!-- 今日复习：堆叠卡牌 -->
+  <div class="review-left">
+    <div class="review-headline">🎲 随手复习</div>
+    <div class="review-sub">来都来了，复习两张再走</div>
+
+    <div class="deck-wrap">
+      <div class="deck-peek deck-peek-2"></div>
+      <div class="deck-peek deck-peek-1"></div>
+      <div class="review-card deck-top">
+        <div class="rc-head">
+          <span class="rc-badge">💡 面试题 · 中等</span>
+          <span class="rc-switch">1 / 3 · 下一张 ›</span>
+        </div>
+        <div class="rc-title"><a href="04-detail.html">JavaScript 中什么是闭包？</a></div>
+        <div class="rc-answer-toggle">▼ 查看答案</div>
+        <div class="rc-hint">请先回忆知识点，再选择你的掌握程度：</div>
+        <div class="rc-actions">
+          <span class="pre">掌握程度：</span>
+          <button class="mastery-btn"><span class="d" style="background:#FACC15;"></span>模糊</button>
+          <button class="mastery-btn"><span class="d" style="background:#FB923C;"></span>记得</button>
+          <button class="mastery-btn"><span class="d" style="background:#10B981;"></span>已掌握</button>
+        </div>
       </div>
     </div>
   </div>
 
 </div>
 
+<footer class="site-footer">
+  <p>Made with <span class="heart">🤎</span> by DevMind · 记录即创造</p>
+</footer>
+
 <script>
-  // 填充热力图：生成 371 天的伪随机打卡数据
-  function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return ((t^t>>>14)>>>0)/4294967296}}
-  var rand = mulberry32(17);
-  var grid = document.getElementById('heatmap');
-  for (var i = 0; i < 371; i++) {
-    var r = rand();
-    var v = 0;
-    if (r > 0.55) v = 1;
-    if (r > 0.75) v = 2;
-    if (r > 0.88) v = 3;
-    if (r > 0.96) v = 4;
-    var cell = document.createElement('div');
-    cell.className = 'hm-cell' + (v ? ' hm-' + v : '');
-    grid.appendChild(cell);
-  }
+  // 热力图（设计稿演示）：从 52 周前的周日开始，按周（列）× 7 天（行）生成格子，
+  // 月份标签落在"该月第一列"，和格子共用同一套列网格 → 天然对齐。
+  (function () {
+    function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return ((t^t>>>14)>>>0)/4294967296;};}
+    var rand = mulberry32(17);
+    var MONTHS = ["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月"];
+    var track = document.getElementById("heatmap");
+
+    var today = new Date();
+    // 起点：52 周前，回退到当周周日
+    var start = new Date(today);
+    start.setDate(start.getDate() - 52 * 7 - today.getDay());
+
+    var totalWeeks = 53;
+    var lastMonth = -1;
+    var lastLabelCol = -99; // 上次标月份的列，用于避免相邻标签重叠
+
+    for (var w = 0; w < totalWeeks; w++) {
+      var colDate = new Date(start);
+      colDate.setDate(start.getDate() + w * 7); // 该列（周）第一天
+
+      // 进入新月份、且距上次标签 ≥3 列才标（短月份跳过，避免标签挤在一起）
+      var m = colDate.getMonth();
+      if (m !== lastMonth) {
+        lastMonth = m;
+        if (w - lastLabelCol >= 3) {
+          lastLabelCol = w;
+          var label = document.createElement("div");
+          label.className = "hm-month-label";
+          label.style.gridColumn = (w + 1);
+          label.textContent = MONTHS[m];
+          track.appendChild(label);
+        }
+      }
+
+      // 该周 7 个格子（落在第 2 行的一列里）
+      var col = document.createElement("div");
+      col.className = "hm-col";
+      col.style.gridColumn = (w + 1);
+      for (var d = 0; d < 7; d++) {
+        var cell = document.createElement("div");
+        cell.className = "hm-cell";
+        var r = rand(), v = 0;
+        if (r > 0.30) v = 1;
+        if (r > 0.52) v = 2;
+        if (r > 0.72) v = 3;
+        if (r > 0.88) v = 4;
+        if (v) cell.classList.add("hm-" + v);
+        col.appendChild(cell);
+      }
+      track.appendChild(col);
+    }
+  })();
 </script>
 
 </body>

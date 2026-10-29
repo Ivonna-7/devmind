@@ -347,6 +347,39 @@ npm install marked dompurify
 
 本页目录由 `buildToc` 在 `nextTick` 后扫描正文 `h2` / `h3`、写入 `heading-N` 锚点生成；滚动时经 `throttleAndDebounce` 节流调用 `updateActiveHeading`（算法参考 VitePress：滚到顶不高亮、滚到底高亮末项、否则取最后一个越过触发线的标题）。点击目录项平滑滚动到对应标题，期间用 `scrollLocked` 配合 `scrollend` 事件 + 定时兜底锁住计算，避免高亮在章节间闪跳；`onUnmounted` 移除监听并清理定时器。
 
+## 12. 学习仪表盘
+
+仪表盘是登录用户的个人学习数据总览：用概览计数、热力图和掌握度 / 类型 / 标签三张图表展现积累，再用「随手复习」按负片实现轻量的间隔复习。路由 `dashboard`（`requiresAuth`）。
+
+### 新增依赖
+
+| 包 | 版本 | 用途 |
+|---|---|---|
+| `echarts` | ^6.1.0 | 图表底层（按需引入渲染器 / 图表 / 组件） |
+| `vue-echarts` | ^8.3.2 | ECharts 的 Vue 封装，提供 `<v-chart>` 组件 |
+
+```bash
+npm install echarts vue-echarts
+```
+
+ECharts 6 按模块按需引入：在 `DashboardView.vue` 里 `use([...])` 只注册用到的 `CanvasRenderer`、四种图表（Heatmap / Pie / Bar / Radar）和对应组件，避免全量打包。
+
+### 统计类型与接口
+
+类型文件：`client/src/types/dashboard.ts`
+
+接口文件：`client/src/api/dashboardService.ts`
+
+### 图表 option 构建函数
+
+配置文件：`client/src/views/dashboard/constants.ts`
+
+### 仪表盘视图
+
+页面文件：`client/src/views/dashboard/DashboardView.vue`
+
+挂载时用 `Promise.all` 并行请求概览 / 热力图 / 标签三个接口，全部返回后整页一次性显示（骨架屏期间布局固定不跳动）。
+
 ---
 
 *本文档随前端开发进展持续更新。*

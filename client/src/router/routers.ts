@@ -19,13 +19,13 @@ const routers: RouteRecordRaw[] = [
       {
         path: "workspace",
         name: "workspace",
-        meta: { title: "工作台" },
+        meta: { title: "工作台", requiresAuth: true },
         component: () => import("@/views/workspace/WorkspaceView.vue"),
       },
       {
         path: "dashboard",
         name: "dashboard",
-        meta: { title: "仪表盘" },
+        meta: { title: "仪表盘", requiresAuth: true },
         component: () => import("@/views/dashboard/DashboardView.vue"),
       },
       {
