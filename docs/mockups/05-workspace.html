@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -6,68 +6,101 @@
 <link rel="stylesheet" href="tokens.css">
 <style>
   .ws-layout { display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 36px; padding-top: 32px; }
+
+  /* 左侧筛选（WorkspaceSidebar）：视图 / 类型 / 可见性 / 标签云，sticky */
   .side-filter { position: sticky; top: 88px; align-self: start; }
   .side-section { margin-bottom: 26px; }
-  .side-section .h { font-size: 11.5px; font-weight: 600; color: var(--ink-500); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px; padding-left: 10px; }
+  .side-section .h { font-size: 11.5px; font-weight: 600; color: var(--ink-500); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px; padding-left: 10px; }
   .side-link { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border-radius: 9px; font-size: 13.5px; color: var(--ink-700); cursor: pointer; transition: all 0.15s; }
   .side-link:hover { background: var(--soft); }
-  .side-link.active { background: #FEF3C7; color: #92400E; font-weight: 500; }
-  .side-link .count { font-size: 11.5px; color: var(--ink-400); font-family: "JetBrains Mono", monospace; }
-  .side-link.active .count { color: #B45309; }
+  .side-link.active { background: var(--brand-soft); color: var(--brand-hover); font-weight: 500; }
+  .side-link .count { font-size: 11.5px; color: var(--ink-400); font-family: var(--font-mono); }
+  .side-link.active .count { color: var(--brand); }
   .tag-cloud { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 10px; }
   .tag-cloud a { font-size: 12.5px; padding: 3px 9px; border-radius: 999px; background: var(--soft); color: var(--ink-700); cursor: pointer; transition: all 0.15s; }
   .tag-cloud a:hover { background: var(--brand-soft); color: var(--brand); }
+  .tag-cloud a.active { background: var(--brand-soft); color: var(--brand); }
 
+  /* 右侧头部 */
   .ws-header { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 20px; }
-  .ws-title { font-family: "Instrument Serif", serif; font-size: 32px; font-weight: 600; letter-spacing: -0.01em; }
+  .ws-title { font-family: var(--font-serif); font-size: 32px; font-weight: 600; letter-spacing: -0.01em; color: var(--ink-900); }
   .ws-count { font-size: 13px; color: var(--ink-500); margin-left: 10px; }
 
+  /* 快速创建：琥珀渐变 + 虚线边，回车建 TIL */
   .quick-capture { background: linear-gradient(135deg, #FFFBEB, #FEF3C7); border: 1px dashed #FDE68A; border-radius: 14px; padding: 14px 18px; display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
   .quick-capture .ico { font-size: 20px; }
-  .quick-capture input { flex: 1; background: transparent; border: 0; outline: none; font-size: 15px; color: var(--ink-900); font-family: inherit; }
-  .quick-capture input::placeholder { color: #A16207; }
-  .quick-capture .hint { font-size: 11.5px; color: #A16207; }
+  .quick-capture input { flex: 1; background: rgba(255,255,255,0.5); border: 1px solid var(--line-soft); border-radius: 10px; padding: 8px 14px; outline: none; font-size: 15px; color: var(--ink-900); font-family: inherit; }
+  .quick-capture input::placeholder { color: var(--ink-400); }
+  .quick-capture .hint { font-size: 11.5px; color: #A16207; white-space: nowrap; }
 
+  /* 工具栏：列表 / 网格切换 + 排序；激活态为品牌琥珀底白字 */
   .toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
   .toolbar .left { display: flex; gap: 8px; }
-  .view-btn { display: flex; align-items: center; gap: 5px; padding: 6px 12px; border-radius: 8px; font-size: 13px; color: var(--ink-700); border: 1px solid var(--line); background: #FFFFFF; cursor: pointer; font-family: inherit; }
-  .view-btn.active { background: var(--ink-900); color: #FFFFFF; border-color: var(--ink-900); }
+  .view-btn { display: flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 8px; font-size: 13px; color: var(--ink-700); border: 1px solid var(--line); background: var(--card); cursor: pointer; font-family: inherit; transition: all 0.15s; }
+  .view-btn:hover { background: var(--soft); }
+  .view-btn.active { background: var(--brand); color: #FFFFFF; border-color: var(--brand); }
+  .view-btn svg { width: 15px; height: 15px; }
+  .sort-select { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; font-size: 13px; color: var(--ink-700); cursor: pointer; font-family: inherit; }
 
-  .section-label { font-size: 11.5px; font-weight: 600; color: var(--ink-500); text-transform: uppercase; letter-spacing: 0.06em; margin: 26px 0 10px; display: flex; align-items: center; gap: 8px; }
+  /* 分区标签（📌 置顶卡片 / 其他卡片 / 全部卡片） */
+  .section-label { font-size: 11.5px; font-weight: 600; color: var(--ink-500); text-transform: uppercase; letter-spacing: 0.06em; display: flex; align-items: center; gap: 8px; }
+  .section-label.pinned { margin: 8px 0 10px; }
+  .section-label.normal { margin: 26px 0 10px; }
 
-  /* Pinned card (网格) */
-  .pinned-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-bottom: 8px; }
+  /* 置顶区：网格迷你卡 */
+  .pinned-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
 
-  /* Row card (列表) */
-  .row-card { background: #FFFFFF; border: 1px solid var(--line); border-radius: 12px; padding: 14px 18px; display: flex; align-items: center; gap: 16px; transition: all 0.15s; position: relative; }
+  /* 列表行卡（WorkspaceCard variant=list） */
+  .row-list { display: flex; flex-direction: column; gap: 10px; }
+  .row-card { position: relative; display: flex; align-items: center; gap: 16px; padding: 14px 18px; border: 1px solid var(--line); border-radius: 12px; background: var(--card); cursor: pointer; transition: all 0.15s; }
   .row-card:hover { border-color: var(--ink-300); box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
   .row-card:hover .row-actions { opacity: 1; }
-  .row-card + .row-card { margin-top: 10px; }
   .row-card .type-dot { width: 6px; height: 38px; border-radius: 3px; flex-shrink: 0; }
-  .type-dot.note { background: #0369A1; }
-  .type-dot.qa   { background: #B45309; }
-  .type-dot.bug  { background: #B91C1C; }
-  .type-dot.til  { background: #15803D; }
-
+  /* 类型色点（真实 CARD_TYPES.dot） */
+  .dot-note { background: #0369A1; } .dot-qa { background: #B45309; } .dot-bug { background: #B91C1C; } .dot-til { background: #15803D; }
   .row-card .row-main { flex: 1; min-width: 0; }
-  .row-card .row-title { font-size: 14.5px; font-weight: 500; color: var(--ink-900); display: flex; align-items: center; gap: 8px; }
+  .row-card .row-title { display: flex; align-items: center; gap: 8px; font-size: 14.5px; font-weight: 500; color: var(--ink-900); }
   .row-card .row-title .emoji { font-size: 12px; }
-  .row-card .row-meta { font-size: 12px; color: var(--ink-500); margin-top: 4px; display: flex; gap: 10px; }
+  .row-card .row-title .diff { flex-shrink: 0; font-size: 10.5px; padding: 1px 8px; border-radius: 999px; background: var(--brand-soft); color: var(--brand-hover); border: 1px solid #FDE68A; }
+  .row-card .row-meta { display: flex; align-items: center; gap: 10px; margin-top: 4px; font-size: 12px; color: var(--ink-500); min-width: 0; }
   .row-card .row-meta .sep { color: var(--ink-300); }
   .row-card .visibility { display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; padding: 3px 8px; border-radius: 999px; background: var(--soft); color: var(--ink-500); flex-shrink: 0; }
-  .visibility.public { background: var(--ok-soft); color: #166534; }
+  .row-card .visibility.public { background: var(--ok-soft); color: #166534; }
+  .row-card .likes { width: 50px; text-align: right; font-size: 12px; color: var(--ink-500); flex-shrink: 0; }
+  .row-card .likes .heart { color: var(--bad); }
 
-  .row-actions { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); display: flex; gap: 4px; opacity: 0; transition: opacity 0.15s; background: #FFFFFF; padding: 4px 6px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-  .row-actions .icon-btn { width: 28px; height: 28px; border-radius: 7px; border: none; background: transparent; color: var(--ink-500); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: all 0.15s; font-family: inherit; font-size: 14px; }
-  .row-actions .icon-btn:hover { background: var(--soft); color: var(--ink-900); }
-  .row-actions .icon-btn.danger:hover { background: var(--bad-soft); color: var(--bad); }
+  /* 悬停操作栏 */
+  .row-actions { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); display: flex; gap: 4px; opacity: 0; transition: opacity 0.15s; background: var(--card); padding: 4px 6px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+  .icon-btn { width: 28px; height: 28px; border-radius: 7px; border: none; background: transparent; color: var(--ink-500); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: all 0.15s; font-family: inherit; font-size: 14px; }
+  .icon-btn:hover { background: var(--soft); color: var(--ink-900); }
+  .icon-btn.danger { color: var(--ok); }
+  .icon-btn.danger:hover { background: var(--bad-soft); color: var(--bad); }
 
-  .mini-card { position: relative; background: #FFFFFF; border: 1px solid var(--line); border-radius: 12px; padding: 16px 16px 14px; transition: all 0.2s ease; }
+  /* 网格迷你卡（WorkspaceCard variant=grid） */
+  .mini-card { position: relative; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px 16px 14px; cursor: pointer; transition: all 0.2s ease; }
   .mini-card:hover { border-color: var(--ink-300); box-shadow: 0 4px 12px rgba(0,0,0,0.05); transform: translateY(-1px); }
+  .mini-card:hover .row-actions { opacity: 1; }
   .mini-card .pin-ico { position: absolute; top: -6px; right: 12px; font-size: 18px; transform: rotate(25deg); }
-  .mini-card h4 { font-size: 14.5px; font-weight: 600; margin: 10px 0 6px; color: var(--ink-900); line-height: 1.35; letter-spacing: -0.005em; }
-  .mini-card .s { font-size: 12.5px; color: var(--ink-500); line-height: 1.5; margin-bottom: 10px; }
   .mini-card .type-badge { display: inline-block; padding: 1.5px 7px; border-radius: 4px; font-size: 10.5px; font-weight: 600; letter-spacing: 0.02em; }
+  /* 类型徽章配色（真实 CARD_TYPES.badge） */
+  .badge-note { background: #E0F2FE; color: #075985; } .badge-qa { background: #FEF3C7; color: #92400E; } .badge-bug { background: #FEE2E2; color: #991B1B; } .badge-til { background: #DCFCE7; color: #166534; }
+  .mini-card h4 { font-size: 14.5px; font-weight: 600; margin: 10px 0 6px; color: var(--ink-900); line-height: 1.35; letter-spacing: -0.005em;
+    display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .mini-card .s { font-size: 12.5px; color: var(--ink-500); line-height: 1.5; margin-bottom: 10px; }
+  .mini-card .foot { font-size: 11.5px; color: var(--ink-500); }
+  .mini-card .foot .heart { color: var(--bad); }
+  .mini-card .row-actions { right: 10px; top: auto; bottom: 10px; transform: none; }
+
+  /* 空状态 */
+  .empty { text-align: center; padding: 96px 0; color: var(--ink-500); }
+  .empty .emj { font-size: 36px; margin-bottom: 12px; }
+  .empty .t { font-size: 16px; font-weight: 500; color: var(--ink-700); }
+  .empty .d { font-size: 14px; margin-top: 4px; color: var(--ink-400); }
+
+  /* 分页 */
+  .pager { display: flex; justify-content: center; margin-top: 16px; padding-bottom: 16px; gap: 6px; }
+  .pager .pg { min-width: 32px; height: 32px; padding: 0 8px; border-radius: 8px; border: 1px solid var(--line); background: var(--card); color: var(--ink-700); font-size: 13px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
+  .pager .pg.active { background: var(--brand); color: #fff; border-color: var(--brand); }
 </style>
 </head>
 <body>
@@ -97,23 +130,20 @@
   </div>
 </header>
 
-<div class="container page-body">
+<div class="container">
   <div class="ws-layout">
 
-    <!-- 左 -->
+    <!-- 左侧筛选 -->
     <aside class="side-filter">
+      <!-- 视图：真实只有「全部」一项，带总数 -->
       <div class="side-section">
         <div class="h">视图</div>
         <div class="side-link active">
           <span>📋 全部</span><span class="count">42</span>
         </div>
-        <div class="side-link">
-          <span>📌 已置顶</span><span class="count">3</span>
-        </div>
-
-
       </div>
 
+      <!-- 类型：由 CARD_TYPES 生成 -->
       <div class="side-section">
         <div class="h">类型</div>
         <div class="side-link"><span>📝 笔记</span><span class="count">14</span></div>
@@ -122,12 +152,14 @@
         <div class="side-link"><span>✨ TIL</span><span class="count">4</span></div>
       </div>
 
+      <!-- 可见性：由 VISIBILITY_OPTIONS 生成 -->
       <div class="side-section">
         <div class="h">可见性</div>
         <div class="side-link"><span>🌐 公开</span><span class="count">22</span></div>
         <div class="side-link"><span>🔒 私有</span><span class="count">20</span></div>
       </div>
 
+      <!-- 标签云：纯名称、无计数、pill 形 -->
       <div class="side-section">
         <div class="h">标签</div>
         <div class="tag-cloud">
@@ -136,8 +168,8 @@
       </div>
     </aside>
 
-    <!-- 右 -->
-    <main>
+    <!-- 右侧主区 -->
+    <main style="min-width: 0;">
       <div class="ws-header">
         <div>
           <span class="ws-title">我的卡片</span>
@@ -146,213 +178,206 @@
         <button class="btn btn-primary btn-lg">+ 新建卡片</button>
       </div>
 
-      <!-- 快速创建 -->
+      <!-- 快速创建：回车建 TIL -->
       <div class="quick-capture">
         <span class="ico">✍️</span>
-        <input type="text" placeholder="快速记录一个 TIL...">
-        <span class="hint">按 <kbd>Enter</kbd> 创建为 TIL · <kbd>⌘+Enter</kbd> 展开编辑器</span>
+        <input type="text" placeholder="记一则 TIL，从一个标题开始…">
+        <span class="hint">按 <kbd>Enter</kbd> 创建为 TIL</span>
       </div>
 
-      <!-- 工具栏 -->
+      <!-- 工具栏：列表 / 网格 + 排序 -->
       <div class="toolbar">
         <div class="left">
-          <button class="view-btn active">📋 列表</button>
-          <button class="view-btn">⊞ 网格</button>
+          <button class="view-btn active">
+            <svg viewBox="0 0 512 512" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="32"><path d="M160 144h288"/><path d="M160 256h288"/><path d="M160 368h288"/><circle cx="80" cy="144" r="16"/><circle cx="80" cy="256" r="16"/><circle cx="80" cy="368" r="16"/></svg>
+            列表
+          </button>
+          <button class="view-btn">
+            <svg viewBox="0 0 512 512" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="32"><rect x="48" y="48" width="176" height="176" rx="20" ry="20"/><rect x="288" y="48" width="176" height="176" rx="20" ry="20"/><rect x="48" y="288" width="176" height="176" rx="20" ry="20"/><rect x="288" y="288" width="176" height="176" rx="20" ry="20"/></svg>
+            网格
+          </button>
         </div>
-        <select class="input" style="width: auto; padding: 6px 10px; font-size: 13px;">
-          <option value="default">最新</option>
+        <select class="sort-select">
+          <option value="newest">最新</option>
           <option value="most_liked">最热</option>
         </select>
       </div>
 
-      <!-- 置顶区 -->
-      <div class="section-label">📌 置顶卡片 · 3</div>
+      <!-- 置顶区：统一用网格迷你卡 -->
+      <div class="section-label pinned">📌 置顶卡片 · 3</div>
       <div class="pinned-grid">
         <div class="mini-card">
           <span class="pin-ico">📌</span>
-          <span class="type-badge" style="background:#E0F2FE;color:#075985;">📝 笔记</span>
+          <span class="type-badge badge-note">📝 笔记</span>
           <h4>Vue 3 Composition API 学习笔记</h4>
           <p class="s">ref / reactive / computed / watch 的使用场景，以及 setup 函数返回值的响应式陷阱...</p>
-          <div style="font-size: 11.5px; color: var(--ink-500);">🔒 私有 · 3 天前</div>
+          <div class="foot">🔒 私有 · 3 天前</div>
+          <div class="row-actions">
+            <button class="icon-btn" title="编辑">✏️</button>
+            <button class="icon-btn" title="取消置顶" style="color:var(--brand);">📌</button>
+            <button class="icon-btn" title="设为公开">🌐</button>
+            <button class="icon-btn danger" title="删除">🗑</button>
+          </div>
         </div>
         <div class="mini-card">
           <span class="pin-ico">📌</span>
-          <span class="type-badge" style="background:#FEF3C7;color:#92400E;">💡 面试题</span>
+          <span class="type-badge badge-qa">💡 面试题</span>
           <h4>JavaScript 闭包的原理</h4>
           <p class="s">闭包是函数与其词法环境的组合。当内部函数引用外部作用域...</p>
-          <div style="font-size: 11.5px; color: var(--ink-500);">🌐 公开 · 2 小时前 · ❤ 24</div>
+          <div class="foot">🌐 公开 · 2 小时前 · <span class="heart">❤</span> 24</div>
+          <div class="row-actions">
+            <button class="icon-btn" title="编辑">✏️</button>
+            <button class="icon-btn" title="取消置顶" style="color:var(--brand);">📌</button>
+            <button class="icon-btn" title="设为私有">🔒</button>
+            <button class="icon-btn danger" title="删除">🗑</button>
+          </div>
         </div>
         <div class="mini-card">
           <span class="pin-ico">📌</span>
-          <span class="type-badge" style="background:#DCFCE7;color:#166534;">✨ TIL</span>
+          <span class="type-badge badge-til">✨ TIL</span>
           <h4>Git worktree 让工作流起飞</h4>
           <p class="s">再也不用为了跑一个 PR 备份代码切分支。同一仓库多个工作副本...</p>
-          <div style="font-size: 11.5px; color: var(--ink-500);">🌐 公开 · 4 天前 · ❤ 203</div>
+          <div class="foot">🌐 公开 · 4 天前 · <span class="heart">❤</span> 203</div>
+          <div class="row-actions">
+            <button class="icon-btn" title="编辑">✏️</button>
+            <button class="icon-btn" title="取消置顶" style="color:var(--brand);">📌</button>
+            <button class="icon-btn" title="设为私有">🔒</button>
+            <button class="icon-btn danger" title="删除">🗑</button>
+          </div>
         </div>
       </div>
 
-      <!-- 普通区 -->
-      <div class="section-label">全部卡片</div>
+      <!-- 普通区：有置顶卡时标题为「其他卡片」 -->
+      <div class="section-label normal">其他卡片</div>
 
-      <div class="row-card">
-        <div class="type-dot qa"></div>
-        <div class="row-main">
-          <div class="row-title">
-            <span class="emoji">💡</span>
-            <span>React Fiber 调度的核心机制</span>
-            <span class="chip chip-amber" style="font-size: 10.5px;">困难</span>
+      <div class="row-list">
+        <!-- 面试题 · 公开 · 有赞 -->
+        <div class="row-card">
+          <div class="type-dot dot-qa"></div>
+          <div class="row-main">
+            <div class="row-title">
+              <span class="emoji">💡</span>
+              <span>React Fiber 调度的核心机制</span>
+              <span class="diff">困难</span>
+            </div>
+            <div class="row-meta">
+              <span>React</span><span class="sep">·</span><span>Fiber</span><span class="sep">·</span><span>源码</span><span class="sep">·</span><span>3 天前编辑</span>
+            </div>
           </div>
-          <div class="row-meta">
-            <span>React</span><span class="sep">·</span><span>Fiber</span><span class="sep">·</span><span>源码</span>
-            <span class="sep">·</span><span>3 天前编辑</span>
+          <span class="visibility public">🌐 公开</span>
+          <span class="likes"><span class="heart">❤</span> 156</span>
+          <div class="row-actions">
+            <button class="icon-btn" title="编辑">✏️</button>
+            <button class="icon-btn" title="置顶">📌</button>
+            <button class="icon-btn" title="设为私有">🔒</button>
+            <button class="icon-btn danger" title="删除">🗑</button>
           </div>
         </div>
-        <span class="visibility public">🌐 公开</span>
-        <span style="font-size: 12px; color: var(--ink-500); min-width: 50px; text-align: right;">❤ 156</span>
-        <div class="row-actions">
-          <button class="icon-btn" title="编辑">✏️</button>
-          <button class="icon-btn" title="置顶">📌</button>
-          <button class="icon-btn" title="切换可见性">🔒</button>
-          <button class="icon-btn danger" title="删除">🗑</button>
+
+        <!-- Bug · 公开 · 有赞 -->
+        <div class="row-card">
+          <div class="type-dot dot-bug"></div>
+          <div class="row-main">
+            <div class="row-title">
+              <span class="emoji">🐛</span>
+              <span>Supabase RLS 让我调试了 3 小时</span>
+            </div>
+            <div class="row-meta">
+              <span>Supabase</span><span class="sep">·</span><span>RLS</span><span class="sep">·</span><span>PostgreSQL</span><span class="sep">·</span><span>5 小时前编辑</span>
+            </div>
+          </div>
+          <span class="visibility public">🌐 公开</span>
+          <span class="likes"><span class="heart">❤</span> 42</span>
+          <div class="row-actions">
+            <button class="icon-btn" title="编辑">✏️</button>
+            <button class="icon-btn" title="置顶">📌</button>
+            <button class="icon-btn" title="设为私有">🔒</button>
+            <button class="icon-btn danger" title="删除">🗑</button>
+          </div>
+        </div>
+
+        <!-- 笔记 · 私有 · 点赞留空 -->
+        <div class="row-card">
+          <div class="type-dot dot-note"></div>
+          <div class="row-main">
+            <div class="row-title">
+              <span class="emoji">📝</span>
+              <span>PostgreSQL 索引选择的 5 条经验</span>
+            </div>
+            <div class="row-meta">
+              <span>PostgreSQL</span><span class="sep">·</span><span>索引</span><span class="sep">·</span><span>性能</span><span class="sep">·</span><span>1 天前编辑</span>
+            </div>
+          </div>
+          <span class="visibility">🔒 私有</span>
+          <span class="likes"></span>
+          <div class="row-actions">
+            <button class="icon-btn" title="编辑">✏️</button>
+            <button class="icon-btn" title="置顶">📌</button>
+            <button class="icon-btn" title="设为公开">🌐</button>
+            <button class="icon-btn danger" title="删除">🗑</button>
+          </div>
+        </div>
+
+        <!-- TIL · 公开 · 有赞 -->
+        <div class="row-card">
+          <div class="type-dot dot-til"></div>
+          <div class="row-main">
+            <div class="row-title">
+              <span class="emoji">✨</span>
+              <span>CSS :has() 终于全浏览器可用</span>
+            </div>
+            <div class="row-meta">
+              <span>CSS</span><span class="sep">·</span><span>选择器</span><span class="sep">·</span><span>1 周前编辑</span>
+            </div>
+          </div>
+          <span class="visibility public">🌐 公开</span>
+          <span class="likes"><span class="heart">❤</span> 89</span>
+          <div class="row-actions">
+            <button class="icon-btn" title="编辑">✏️</button>
+            <button class="icon-btn" title="置顶">📌</button>
+            <button class="icon-btn" title="设为私有">🔒</button>
+            <button class="icon-btn danger" title="删除">🗑</button>
+          </div>
+        </div>
+
+        <!-- 笔记 · 私有 · 点赞留空 -->
+        <div class="row-card">
+          <div class="type-dot dot-note"></div>
+          <div class="row-main">
+            <div class="row-title">
+              <span class="emoji">📝</span>
+              <span>TypeScript 泛型约束的 5 种常见用法</span>
+            </div>
+            <div class="row-meta">
+              <span>TypeScript</span><span class="sep">·</span><span>泛型</span><span class="sep">·</span><span>3 周前编辑</span>
+            </div>
+          </div>
+          <span class="visibility">🔒 私有</span>
+          <span class="likes"></span>
+          <div class="row-actions">
+            <button class="icon-btn" title="编辑">✏️</button>
+            <button class="icon-btn" title="置顶">📌</button>
+            <button class="icon-btn" title="设为公开">🌐</button>
+            <button class="icon-btn danger" title="删除">🗑</button>
+          </div>
         </div>
       </div>
 
-      <div class="row-card">
-        <div class="type-dot bug"></div>
-        <div class="row-main">
-          <div class="row-title">
-            <span class="emoji">🐛</span>
-            <span>Supabase RLS 让我调试了 3 小时</span>
-          </div>
-          <div class="row-meta">
-            <span>Supabase</span><span class="sep">·</span><span>RLS</span><span class="sep">·</span><span>PostgreSQL</span>
-            <span class="sep">·</span><span>5 小时前编辑</span>
-          </div>
-        </div>
-        <span class="visibility public">🌐 公开</span>
-        <span style="font-size: 12px; color: var(--ink-500); min-width: 50px; text-align: right;">❤ 42</span>
-        <div class="row-actions">
-          <button class="icon-btn" title="编辑">✏️</button>
-          <button class="icon-btn" title="置顶">📌</button>
-          <button class="icon-btn" title="切换可见性">🔒</button>
-          <button class="icon-btn danger" title="删除">🗑</button>
-        </div>
+      <!-- 分页：n-pagination（含每页条数选择器） -->
+      <div class="pager">
+        <span class="pg">‹</span>
+        <span class="pg active">1</span>
+        <span class="pg">2</span>
+        <span class="pg">3</span>
+        <span class="pg">›</span>
       </div>
-
-      <div class="row-card">
-        <div class="type-dot note"></div>
-        <div class="row-main">
-          <div class="row-title">
-            <span class="emoji">📝</span>
-            <span>PostgreSQL 索引选择的 5 条经验</span>
-          </div>
-          <div class="row-meta">
-            <span>PostgreSQL</span><span class="sep">·</span><span>索引</span><span class="sep">·</span><span>性能</span>
-            <span class="sep">·</span><span>1 天前编辑</span>
-          </div>
-        </div>
-        <span class="visibility">🔒 私有</span>
-        <span style="font-size: 12px; color: var(--ink-500); min-width: 50px; text-align: right;">—</span>
-        <div class="row-actions">
-          <button class="icon-btn" title="编辑">✏️</button>
-          <button class="icon-btn" title="置顶">📌</button>
-          <button class="icon-btn" title="设为公开">🌐</button>
-          <button class="icon-btn danger" title="删除">🗑</button>
-        </div>
-      </div>
-
-      <div class="row-card">
-        <div class="type-dot til"></div>
-        <div class="row-main">
-          <div class="row-title">
-            <span class="emoji">✨</span>
-            <span>CSS :has() 终于全浏览器可用</span>
-          </div>
-          <div class="row-meta">
-            <span>CSS</span><span class="sep">·</span><span>选择器</span>
-            <span class="sep">·</span><span>1 周前编辑</span>
-          </div>
-        </div>
-        <span class="visibility public">🌐 公开</span>
-        <span style="font-size: 12px; color: var(--ink-500); min-width: 50px; text-align: right;">❤ 89</span>
-        <div class="row-actions">
-          <button class="icon-btn" title="编辑">✏️</button>
-          <button class="icon-btn" title="置顶">📌</button>
-          <button class="icon-btn" title="切换可见性">🔒</button>
-          <button class="icon-btn danger" title="删除">🗑</button>
-        </div>
-      </div>
-
-      <div class="row-card">
-        <div class="type-dot qa"></div>
-        <div class="row-main">
-          <div class="row-title">
-            <span class="emoji">💡</span>
-            <span>HTTP 301 vs 302 的本质差别</span>
-            <span class="chip" style="font-size: 10.5px;">简单</span>
-          </div>
-          <div class="row-meta">
-            <span>HTTP</span><span class="sep">·</span><span>网络基础</span>
-            <span class="sep">·</span><span>2 周前编辑</span>
-          </div>
-        </div>
-        <span class="visibility public">🌐 公开</span>
-        <span style="font-size: 12px; color: var(--ink-500); min-width: 50px; text-align: right;">❤ 31</span>
-        <div class="row-actions">
-          <button class="icon-btn" title="编辑">✏️</button>
-          <button class="icon-btn" title="置顶">📌</button>
-          <button class="icon-btn" title="切换可见性">🔒</button>
-          <button class="icon-btn danger" title="删除">🗑</button>
-        </div>
-      </div>
-
-      <div class="row-card">
-        <div class="type-dot note"></div>
-        <div class="row-main">
-          <div class="row-title">
-            <span class="emoji">📝</span>
-            <span>TypeScript 泛型约束的 5 种常见用法</span>
-          </div>
-          <div class="row-meta">
-            <span>TypeScript</span><span class="sep">·</span><span>泛型</span>
-            <span class="sep">·</span><span>3 周前编辑</span>
-          </div>
-        </div>
-        <span class="visibility">🔒 私有</span>
-        <span style="font-size: 12px; color: var(--ink-500); min-width: 50px; text-align: right;">—</span>
-        <div class="row-actions">
-          <button class="icon-btn" title="编辑">✏️</button>
-          <button class="icon-btn" title="置顶">📌</button>
-          <button class="icon-btn" title="设为公开">🌐</button>
-          <button class="icon-btn danger" title="删除">🗑</button>
-        </div>
-      </div>
-
-      <div class="row-card">
-        <div class="type-dot til"></div>
-        <div class="row-main">
-          <div class="row-title">
-            <span class="emoji">✨</span>
-            <span>VSCode 的 Ctrl+D 会选中全部同名</span>
-          </div>
-          <div class="row-meta">
-            <span>VSCode</span><span class="sep">·</span><span>效率</span>
-            <span class="sep">·</span><span>1 个月前编辑</span>
-          </div>
-        </div>
-        <span class="visibility public">🌐 公开</span>
-        <span style="font-size: 12px; color: var(--ink-500); min-width: 50px; text-align: right;">❤ 17</span>
-        <div class="row-actions">
-          <button class="icon-btn" title="编辑">✏️</button>
-          <button class="icon-btn" title="置顶">📌</button>
-          <button class="icon-btn" title="切换可见性">🔒</button>
-          <button class="icon-btn danger" title="删除">🗑</button>
-        </div>
-      </div>
-
     </main>
   </div>
 </div>
+
+<footer class="site-footer">
+  <p>Made with <span class="heart">🤎</span> by DevMind · 记录即创造</p>
+</footer>
 
 </body>
 </html>

@@ -882,18 +882,19 @@ SQL 聚合函数（`COUNT`/`SUM`/`AVG`）都是**先分组，再在每组内计�
 
 ### GET /api/stats/overview — 总览统计
 
-返回当前用户的卡片总数、类型分布、掌握度分布、被赞数、被收藏数。
+返回当前用户的卡片总数、类型分布、掌握度分布、可见性分布、被赞数、被收藏数。
 
-#### 实现策略：拆成 5 个独立查询
+#### 实现策略：拆成 6 个独立查询
 
-不用一个超复杂的 SQL 硬堆，拆成 5 个简单查询 + JS 组装，更清晰可读。
+不用一个超复杂的 SQL 硬堆，拆成 6 个简单查询 + JS 组装，更清晰可读。
 
 ```
 1. 卡片总数      → SELECT COUNT(*) FROM cards WHERE user_id = $1
 2. 按类型分布    → GROUP BY type
 3. 按掌握度分布  → GROUP BY mastery
-4. 被点赞总数    → JOIN likes + cards，按卡片所有者统计
-5. 被收藏总数    → JOIN favorites + cards，按卡片所有者统计
+4. 按可见性分布  → GROUP BY visibility
+5. 被点赞总数    → JOIN likes + cards，按卡片所有者统计
+6. 被收藏总数    → JOIN favorites + cards，按卡片所有者统计
 ```
 
 #### reduce 把数组转成对象

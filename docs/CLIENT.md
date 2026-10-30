@@ -380,6 +380,29 @@ ECharts 6 按模块按需引入：在 `DashboardView.vue` 里 `use([...])` 只�
 
 挂载时用 `Promise.all` 并行请求概览 / 热力图 / 标签三个接口，全部返回后整页一次性显示（骨架屏期间布局固定不跳动）。
 
+## 13. 工作台
+
+工作台是登录用户管理自己卡片的后台：左侧按类型 / 可见性 / 标签筛选，右侧列表 / 网格两种布局浏览，支持快速记录、新建 / 编辑弹窗与逐卡的置顶 / 改可见性 / 删除。路由 `workspace`（`requiresAuth`），列表始终带 `user_id = 自己`。
+
+### 新增依赖
+
+| 包 | 版本 | 用途 |
+|---|---|---|
+| `md-editor-v3` | ^7.1.0 | 新建 / 编辑弹窗的 Markdown 富文本编辑器（正文、参考答案） |
+
+```bash
+npm install md-editor-v3
+```
+
+### 卡片提交类型与接口
+
+类型文件：`client/src/types/workspace.ts`
+
+接口文件：`client/src/api/workspaceService.ts`
+
+列表复用首页的 `getCardList`（`homeService`），侧边栏计数复用仪表盘的 `getOverviewStats`（`dashboardService`）。
+### 工作台视图
+
+页面文件：`client/src/views/workspace/WorkspaceView.vue`
 ---
 
-*本文档随前端开发进展持续更新。*

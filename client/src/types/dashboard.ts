@@ -16,6 +16,8 @@ export class OverviewStats {
   total_cards!: number;
   /** 按类型统计（键为 CardType 全集） */
   by_type!: Record<CardType, number>;
+  /** 按可见性统计（后端按 GROUP BY 聚合，0 张的档位不返回，故键可能缺失） */
+  by_visibility!: Partial<Record<"public" | "private", number>>;
   /** 掌握度分布（后端按 GROUP BY 聚合，0 张卡的档位不返回，故键可能缺失） */
   mastery_distribution!: Partial<Record<Mastery, number>>;
   /** 收到的点赞总数 */
@@ -27,7 +29,6 @@ export class OverviewStats {
     Object.assign(this, raw);
   }
 }
-
 
 /** 复习卡片 */
 export class ReviewCard {

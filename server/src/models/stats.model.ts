@@ -18,9 +18,16 @@ export const getTagStats = async (userId: number, limit: number) => {
 
 // 总览统计:卡片总数、类型分布、掌握度分布、被点赞/收藏数
 export const getOverviewStats = async (userId: number) => {
-  // 5 个查询互不依赖，并行发出（耗时从 5×RTT 降为 1×RTT）。
+  // 6 个查询互不依赖，并行发出（耗时从 6×RTT 降为 1×RTT）。
   // 全是只读 SELECT，任一失败 Promise.all 整体 reject，语义与串行版一致。
-  const [totalResult, typeResult, masteryResult, likesResult, favoritesResult] =
+  const [
+    totalResult,
+    typeResult,
+    masteryResult,
+    visibilityResult,
+    likesResult,
+    favoritesResult,
+  ] =
     await Promise.all([
       // 卡片总数
       pool.query(`SELECT COUNT(*) FROM cards WHERE user_id =$1 `, [userId]),
@@ -32,6 +39,11 @@ export const getOverviewStats = async (userId: number) => {
       //按掌握度分布（new / fuzzy / remember / master）
       pool.query(
         `SELECT mastery,COUNT(*) AS count FROM cards WHERE user_id =$1 GROUP BY mastery`,
+        [userId]
+      ),
+      //按可见性分布（public / private）
+      pool.query(
+        `SELECT visibility,COUNT(*) AS count FROM cards WHERE user_id =$1 GROUP BY visibility`,
         [userId]
       ),
       // 被点赞总数（我的卡被别人点了多少赞）
@@ -66,12 +78,17 @@ export const getOverviewStats = async (userId: number) => {
       acc[cur.mastery] = parseInt(cur.count);
       return acc;
   }, {});
+  const by_visibility = visibilityResult.rows.reduce((acc: any, cur: any) => {
+    acc[cur.visibility] = parseInt(cur.count);
+    return acc;
+  }, {});
   const total_likes_received = parseInt(likesResult.rows[0].count);
   const total_favorites_received = parseInt(favoritesResult.rows[0].count);
   return {
     total_cards,
     by_type,
     mastery_distribution,
+    by_visibility,
     total_likes_received,
     total_favorites_received,
   };
