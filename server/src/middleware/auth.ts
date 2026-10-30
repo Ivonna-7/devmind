@@ -10,7 +10,7 @@ export const authMiddleWare = async (
     const token =req.headers.authorization?.split(' ')[1]//从"Bearer xx"中取token
     if (!token) {
       return res.status(401).json({
-        message: "请先登录",
+        error: "请先登录",
       });
     }
     try {
@@ -20,7 +20,7 @@ export const authMiddleWare = async (
       next();
     } catch (error) {
       return res.status(401).json({
-        message: "token无效或已过期",
+        error: "token无效或已过期",
       });
     }
 };

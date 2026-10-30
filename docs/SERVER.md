@@ -1415,3 +1415,83 @@ LIMIT $2 OFFSET $3
 ---
 
 合计约 50 行代码（不含注释）。全部改动已通过 `tsc --noEmit` 类型检查 + 实际接口请求验证（7 项）。
+
+
+## 19. 输入校验 — zod
+
+给所有带输入的接口补上参数校验:本步用 zod 在路由层统一拦截。
+
+### 新增依赖
+
+| 包 | 版本 | 作用 |
+|---|------|------|
+| zod | ^4.6.7 | 运行时数据校验 + TypeScript 类型推导 |
+
+```bash
+npm install zod
+```
+
+>注意 zod 4 的 API：`z.email()` / `z.url()` 是顶层函数（非 `z.string().email()`），错误项在 `result.error.issues` 数组。
+
+### 通用校验中间件
+
+文件：`src/middleware/validate.ts`
+
+工厂函数 `validate(schema, target)`，`target` 为 `"body" | "query" | "params"`（默认 body），返回一个挂到路由的中间件：
+
+```ts
+export const validate =
+  (schema: ZodType, target: Target = "body") =>
+  (req, res, next) => {
+    const result = schema.safeParse(req[target]);
+    if (!result.success) {
+      const first = result.error.issues[0];
+      const field = first?.path.join(".");
+      const error = field ? `${field}: ${first?.message}` : (first?.message ?? "参数校验失败");
+      return res.status(400).json({ error });
+    }
+    if (target === "body") {
+      req.body = result.data;   // 只回写 body；清洗后的数据覆盖原始 body
+    }
+    next();
+  };
+```
+
+**关键点**：
+- 用 `safeParse` 而非 `parse`：不抛异常，返回 `{ success, data/error }`，由我们自己决定返回 400 格式。
+- 错误响应用项目统一的 `{ error }` 格式（前端拦截器 `api/index.ts` 只读 `response.data.error`），并带上字段名，如 `password: 密码至少 6 位`。
+- **只回写 `req.body`**：Express 5 里 `req.query` / `req.params` 是只读 getter，不能重新赋值。所以 query/params 只做「拦截非法」，不做「回写清洗值」，controller 仍自己 `Number(req.params.id)`。
+
+### schema 文件
+
+| 文件 | 内容 |
+|---|---|
+| `src/schemas/auth.schema.ts` | registerSchema、loginSchema、updateUserSchema |
+| `src/schemas/card.schema.ts` | createCardSchema、updateCardSchema、reviewCardSchema、cardIdParamSchema、cardListQuerySchema、randomCardQuerySchema |
+| `src/schemas/common.schema.ts` | idParamSchema、paginationQuerySchema、limitQuerySchema |
+
+**枚举取值**（与前端 constants、数据库对齐）：
+- type：`note` / `question` / `bug` / `til`
+- visibility：`public` / `private`
+- difficulty：`easy` / `medium` / `hard`
+- mastery（复习提交）：`fuzzy` / `remember` / `master`（不含 `new`，`new` 是初始态不由用户提交）
+
+### 各路由挂载情况
+
+| 路由文件 | 挂载的校验 |
+|---|---|
+| `routes/auth.ts` | register / login / 改资料 挂 body 校验 |
+| `routes/cards.ts` | 创建/更新/复习挂 body；所有 `:id` 挂 params；列表 / random 挂 query |
+| `routes/social.ts` | 点赞/收藏 `:id` 挂 params；收藏列表挂 params + 分页 query |
+| `routes/stats.ts` | `/tags` 挂 limit query；overview / heatmap 无输入不挂 |
+| `routes/tags.ts` | `:name/cards` 挂 name params + 分页 query |
+| `routes/users.ts` | `:id` 挂 params |
+
+### 三类输入全覆盖
+
+校验覆盖 body、路径参数（`:id`、tag name）、query 三类。其中 query 校验要点：
+
+- **可选字段**：query 参数全 `.optional()`（controller 有默认值），只在「传了」时校验格式。
+- **数字强制转换**：`z.coerce.number().int().positive()` —— query 都是字符串，coerce 转数字；positive 挡掉 `page=-5`（原来负数会直接当 OFFSET 送进 SQL 报错）、`page=0`、`page=abc`。
+- **limit 不设上限**：前端个人主页 / 收藏列表会传 `limit=100`，controller 内部 `Math.min(limit, 50)` 再夹住。schema 若设 `.max(50)` 会把这些正常请求误伤成 400，所以只校验「正整数」不设上限。
+- **严格 enum 不误伤首页**：首页「全部」标签页前端发的是 `type: null`，axios 默认丢弃 null/undefined 参数，后端收不到 `type`，不触发 enum 校验（已实测确认）。

@@ -4,6 +4,9 @@ import {
   getAllTagsHandler,
   getCardsByTagHandler,
 } from "../controllers/tags.controller.js";
+import { validate } from "../middleware/validate.js";
+import { z } from "zod";
+import { paginationQuerySchema } from "../schemas/common.schema.js";
 
 const router = Router();
 
@@ -13,7 +16,13 @@ const router = Router();
 // 所有标签及使用次数
 router.get("/", optionalAuthMiddleWare, getAllTagsHandler);
 
-// 某标签下的公开卡片
-router.get("/:name/cards", optionalAuthMiddleWare, getCardsByTagHandler);
+// 某标签下的公开卡片（:name 标签名非空）
+router.get(
+"/:name/cards",
+optionalAuthMiddleWare,
+  validate(z.object({ name: z.string().trim().min(1, "标签名不能为空").max(50) }), "params"),
+  validate(paginationQuerySchema, "query"),
+getCardsByTagHandler,
+);
 
 export default router;

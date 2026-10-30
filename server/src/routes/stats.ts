@@ -5,11 +5,13 @@ import {
   getOverviewStatsHandler,
   getHeatmapStatsHandler,
 } from "../controllers/stats.controller.js";
+import { validate } from "../middleware/validate.js";
+import { limitQuerySchema } from "../schemas/common.schema.js";
 
 const router = Router();
 
 // 标签分布
-router.get("/tags", authMiddleWare, getTagStatsHandler);
+router.get("/tags", authMiddleWare, validate(limitQuerySchema, "query"), getTagStatsHandler);
 // 总览统计
 router.get("/overview", authMiddleWare, getOverviewStatsHandler);
 // 热力图

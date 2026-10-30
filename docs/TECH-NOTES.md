@@ -837,3 +837,30 @@ ECharts 按需引入时，要把用到的模块用 `use([...])` 注册。规则�
 | 适合 | 饼图、柱图、折线多系列 | 热力图、地图、散点密度 |
 
 **一句话**：类别用 legend，数值深浅用 visualMap。
+
+---
+
+## 运行时数据校验库对比
+
+TypeScript 的类型只在编译时存在，运行时对 `req.body` 等外部输入无约束。数据校验库在**运行时**真正检查数据，不合法就挡在门外（返回 400），避免脏数据流到数据库或炸成 500。
+
+| 库 | 特点 | 适合场景 |
+|---|---|---|
+| **zod** | TS 优先，schema 即类型（自动推断），API 直观，生态最大 | TS 项目默认首选 |
+| **Valibot** | 用法与 zod 几乎一致，但模块化、体积极小（tree-shaking 后比 zod 小一个量级） | 在意打包体积，尤其前端/边缘函数 |
+| **ArkType** | 用「像 TS 类型的字符串」写 schema，运行时性能最快，类型推断极强 | 追求性能/极致类型体验，但相对新、生态小 |
+| **Yup** | 老牌，早年和 Formik 表单组合流行 | 老项目、表单场景；TS 推断不如 zod |
+| **Joi** | Node 后端经典（Hapi 团队出），功能全 | 纯后端、非 TS 或不在乎类型推断 |
+| **class-validator** | 装饰器风格（`@IsEmail()` 挂在 class 上） | NestJS 生态标配，配合 DTO class |
+| **Superstruct** | 轻量、可组合 | 小项目、喜欢函数式 |
+| **TypeBox** | 生成标准 JSON Schema，和 Fastify/OpenAPI 天然契合 | 需要 JSON Schema、或用 Fastify |
+
+### 选型建议
+
+- **普通 TS 全栈（Express + Vue）**：zod 是安全牌，生态和文档最全。
+- **嫌 zod 打包大（前端也要校验时）**：Valibot，用法几乎无缝迁移。
+- **用 NestJS**：直接 class-validator，框架已铺好。
+- **用 Fastify / 需 OpenAPI 文档自动生成**：TypeBox（出 JSON Schema）。
+- **性能敏感、愿意尝鲜**：ArkType。
+
+> 本项目（Express 5 + Vue，校验主在后端）：zod 或 Valibot 二选一，后端场景 zod 就够；Valibot 省的主要是前端体积。

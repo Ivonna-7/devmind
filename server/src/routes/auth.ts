@@ -1,11 +1,13 @@
 import { Router } from "express";
 import { register,login,getUserInfo,updateUserInfo } from "../controllers/auth.controller.js";
 import { authMiddleWare } from "../middleware/auth.js";
+import { validate } from "../middleware/validate.js";
+import { registerSchema, loginSchema, updateUserSchema } from "../schemas/auth.schema.js";
  
 const router = Router();
 // 定义一条 POST 路由:'/register' — 路径,register — 这个路径被访问时执行的函数
-router.post("/register", register)
-router.post("/login", login)
+router.post("/register", validate(registerSchema), register)
+router.post("/login", validate(loginSchema), login)
 router.get("/me", authMiddleWare,getUserInfo)
-router.put("/me", authMiddleWare,updateUserInfo)
+router.put("/me", authMiddleWare, validate(updateUserSchema), updateUserInfo)
 export default router;
