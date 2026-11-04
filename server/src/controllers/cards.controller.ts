@@ -122,6 +122,15 @@ export const updateCardHandler = async (req: Request, res: Response) => {
   }
   const { title, content, type, answer, visibility, difficulty, tags } =
     req.body;
+  // 判断用户是否传了 `answer` 字段
+  const answerProvided = Object.prototype.hasOwnProperty.call(
+    req.body,
+    "answer"
+  );
+  const difficultyProvided = Object.prototype.hasOwnProperty.call(
+    req.body,
+    "difficulty"
+  );
   const updatedCard = await updateCard(
     id,
     title,
@@ -130,7 +139,9 @@ export const updateCardHandler = async (req: Request, res: Response) => {
     answer,
     visibility,
     difficulty,
-    tags
+    tags,
+    answerProvided,
+    difficultyProvided
   );
   res.status(200).json(updatedCard);
 };

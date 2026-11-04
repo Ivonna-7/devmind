@@ -50,7 +50,7 @@ const authStore = useAuthStore();
 
 const overview = ref<OverviewStats | null>(null);
 const heatmap = ref<{ date: string; count: number }[]>([]);
-const tagStats = ref<{ name: string; count: string }[]>([]);
+const tagStats = ref<{ name: string; count: number }[]>([]);
 
 // ---------- 热力图 ----------
 const heatmapOption = computed(() => buildHeatmapOption(heatmap.value));

@@ -157,8 +157,8 @@ export const buildBarOption = (
   ],
 });
 /** 技能雷达图 option（axes 为参与绘制的标签统计；各轴上界取最大值，至少 1） */
-export const buildRadarOption = (axes: { name: string; count: string }[]) => {
-  const maxCount = Math.max(1, ...axes.map((a) => Number(a.count)));
+export const buildRadarOption = (axes: { name: string; count: number }[]) => {
+  const maxCount = Math.max(1, ...axes.map((a) => a.count));
   return {
     title: {
       text: "知识版图",
@@ -189,7 +189,7 @@ export const buildRadarOption = (axes: { name: string; count: string }[]) => {
         type: "radar",
         data: [
           {
-            value: axes.map((a) => Number(a.count)),
+            value: axes.map((a) => a.count),
             /**雷达图叠了两层:
              * 背景蜘蛛网(灰色的,由 radar 块配)——那张空网格
              * 数据多边形(橙色的,由 series 块配)——数据连成的形状,盖在网上

@@ -2,31 +2,71 @@
 
 // 点赞
 export const likeCard = async (userId: number, cardId: number) => {
+  const cardResult = await pool.query(
+    "SELECT visibility, user_id FROM cards WHERE id = $1",
+    [cardId]
+  );
+  const card = cardResult.rows[0];
+  if (!card || (card.visibility !== "public" && card.user_id !== userId)) {
+    return false;
+  }
+
   await pool.query(`INSERT INTO likes(user_id,card_id) VALUES($1,$2)`, [
     userId,
     cardId,
   ]);
+  return true;
 };
 // 取消点赞
 export const unLikeCard = async (userId: number, cardId: number) => {
+  const cardResult = await pool.query(
+    "SELECT visibility, user_id FROM cards WHERE id = $1",
+    [cardId]
+  );
+  const card = cardResult.rows[0];
+  if (!card || (card.visibility !== "public" && card.user_id !== userId)) {
+    return false;
+  }
+
   await pool.query(`DELETE FROM likes WHERE user_id=$1 AND card_id=$2`, [
     userId,
     cardId,
   ]);
+  return true;
 };
 // 收藏
 export const favoriteCard = async (userId: number, cardId: number) => {
+  const cardResult = await pool.query(
+    "SELECT visibility, user_id FROM cards WHERE id = $1",
+    [cardId]
+  );
+  const card = cardResult.rows[0];
+  if (!card || (card.visibility !== "public" && card.user_id !== userId)) {
+    return false;
+  }
+
   await pool.query(`INSERT INTO favorites(user_id,card_id) VALUES($1,$2)`, [
     userId,
     cardId,
   ]);
+  return true;
 };
 // 取消收藏
 export const unFavoriteCard = async (userId: number, cardId: number) => {
+  const cardResult = await pool.query(
+    "SELECT visibility, user_id FROM cards WHERE id = $1",
+    [cardId]
+  );
+  const card = cardResult.rows[0];
+  if (!card || (card.visibility !== "public" && card.user_id !== userId)) {
+    return false;
+  }
+
   await pool.query(`DELETE FROM favorites WHERE user_id=$1 AND card_id=$2`, [
     userId,
     cardId,
   ]);
+  return true;
 };
 // 获取收藏的所有卡片详情
 // 为什么 GROUP BY 两个字段？因为 SELECT 里非聚合字段必须出现在 GROUP BY 里。c.* 展开后所有字段都由 c.id 唯一决定（已经 GROUP BY 了），但 f.created_at 来自另一张表，必须单独加进去。
@@ -42,7 +82,8 @@ export const getUserFavoriteCards = async (
   const countResult = await pool.query(
     `SELECT COUNT(*) FROM favorites f
      JOIN cards c ON f.card_id = c.id
-     WHERE f.user_id = $1 AND (c.title ILIKE $2 OR c.content ILIKE $2)`,
+     WHERE f.user_id = $1 AND c.visibility = 'public'
+       AND (c.title ILIKE $2 OR c.content ILIKE $2)`,
     [userId, pattern]
   );
   const total = parseInt(countResult.rows[0].count);
@@ -62,7 +103,8 @@ export const getUserFavoriteCards = async (
     LEFT JOIN users u ON c.user_id = u.id
     LEFT JOIN card_tags ct ON c.id = ct.card_id
     LEFT JOIN tags t ON ct.tag_id = t.id
-    WHERE f.user_id = $1 AND (c.title ILIKE $2 OR c.content ILIKE $2)
+    WHERE f.user_id = $1 AND c.visibility = 'public'
+      AND (c.title ILIKE $2 OR c.content ILIKE $2)
     GROUP BY c.id, u.id, f.created_at
     ORDER BY f.created_at DESC
     LIMIT $3 OFFSET $4`,

@@ -728,15 +728,19 @@ DELETE FROM likes WHERE user_id = $1 AND card_id = $2
 |---|---|---|
 | POST /like 成功 | **201** | `{ message: "点赞成功" }` |
 | POST /like 重复 | **409** | `{ error: "已经点过赞了" }` |
+| 点赞/取消点赞时卡片不存在或为无权访问的私有卡 | **404** | `{ error: "卡片不存在或无权操作" }` |
 | DELETE /like 成功 | **204** | 空（用 `.send()` 不用 `.json()`） |
 | POST /favorite 成功 | **201** | `{ message: "收藏成功" }` |
+| 收藏/取消收藏时卡片不存在或为无权访问的私有卡 | **404** | `{ error: "卡片不存在或无权操作" }` |
 | DELETE /favorite 成功 | **204** | 空 |
 
 
 
 ### GET /api/users/:id/favorites — 获取用户收藏列表
 
-**特点**：不需要登录（`v1 默认公开`），支持分页，关键词搜索。
+**访问权限**：必须登录，且 URL 中的 `:id` 必须等于当前登录用户 ID；否则未登录返回 `401`，访问他人收藏列表返回 `403`。
+
+**返回范围**：只返回该用户收藏且当前仍为公开状态的卡片。卡片转为私有后不再出现在列表中；即使是用户自己创建并收藏的私有卡片也不会返回。支持分页和关键词搜索。
 
 #### 核心 SQL
 
@@ -748,7 +752,7 @@ FROM favorites f
 JOIN cards c ON f.card_id = c.id
 LEFT JOIN card_tags ct ON c.id = ct.card_id
 LEFT JOIN tags t ON ct.tag_id = t.id
-WHERE f.user_id = $1
+WHERE f.user_id = $1 AND c.visibility = 'public'
 GROUP BY c.id, f.created_at
 ORDER BY f.created_at DESC
 LIMIT $2 OFFSET $3
@@ -771,17 +775,6 @@ favorites 表的 `created_at` 是**收藏时间**，和卡片自己的 `created_
 **4. `GROUP BY c.id, f.created_at`**
 
 GROUP BY 必须包含 SELECT 里所有非聚合字段。`c.*` 的字段由 `c.id` 决定，但 `f.created_at` 来自另一张表，必须单独加进 GROUP BY。
-
-#### 两种 userId 的区别
-
-同样是名字 userId，来源不同含义不同：
-
-| 来源 | 含义 | 场景 |
-|---|---|---|
-| `req.params.id` | URL 里的用户 id | 查**别人**或**指定某人**的数据 |
-| `(req as any).userId` | token 解析出的 id | 做**当前登录用户自己**的操作 |
-
-本接口用 `req.params.id`（查"URL 里那个人"的收藏，不是登录用户自己的）。
 
 ---
 

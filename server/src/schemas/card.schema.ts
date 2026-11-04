@@ -21,8 +21,8 @@ export const createCardSchema = z.object({
     .optional(),
 });
 
-// 更新卡片：后端 updateCard 模型用 COALESCE 做部分更新，前端类型也是 Partial，
-// 所以所有字段都可选（只校验格式，不强制必填）；title/content 传了就不能为空
+// 更新卡片：字段均可选以支持部分更新；answer/difficulty 区分省略（保留）和 null（清空）
+// title/content 传了就不能为空
 export const updateCardSchema = z.object({
   title: z
     .string()

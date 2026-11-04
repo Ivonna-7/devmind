@@ -11,29 +11,48 @@ export const createCard = async (
   difficulty: string | null,
   tags: string[]
 ) => {
-  const cardResult = await pool.query(
-    "INSERT INTO cards (user_id, title, content, type, answer, visibility, difficulty) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *",
-    [userId, title, content, type, answer, visibility || "private", difficulty]
-  );
-  const card = cardResult.rows[0];
-  // 判断是否标签已存在
-  if (tags && tags.length > 0) {
-    for (const tagName of tags) {
-      const tagResult = await pool.query(
-        `INSERT INTO tags(name) VALUES($1)
-         ON CONFLICT (name) DO UPDATE SET name = $1
-         RETURNING id`,
-        [tagName]
-      );
-      const tagId = tagResult.rows[0].id;
-      // 建立关联
-      await pool.query("INSERT INTO card_tags(card_id,tag_id) VALUES($1,$2)", [
-        card.id,
-        tagId,
-      ]);
+  // pool：数据库连接池。可以理解成一组可重复使用的数据库连接。调用 pool.query() 时，连接池会帮忙找一条连接执行查询
+  // connect()：从连接池里借一条专用连接。这里借出的连接存在 client 变量中，这次事务专用的连接。事务里的操作都必须用它，不能中途改用
+  // pool.query()，否则数据库可能把查询交给另一条连接，事务就无法保证把这些操作作为一个整体处理。
+  const client = await pool.connect();
+  let cardId: number;
+  try {
+    // 告诉数据库“事务开始了”。从这里开始，修改先暂存在事务里，还没有最终确认。
+    await client.query("BEGIN");
+    const cardResult = await client.query(
+      "INSERT INTO cards (user_id, title, content, type, answer, visibility, difficulty) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *",
+      [userId, title, content, type, answer, visibility || "private", difficulty]
+    );
+    const card = cardResult.rows[0];
+    cardId = card.id;
+    // 判断是否标签已存在
+    if (tags && tags.length > 0) {
+      for (const tagName of tags) {
+        const tagResult = await client.query(
+          `INSERT INTO tags(name) VALUES($1)
+           ON CONFLICT (name) DO UPDATE SET name = $1
+           RETURNING id`,
+          [tagName]
+        );
+        const tagId = tagResult.rows[0].id;
+        // 建立关联
+        await client.query("INSERT INTO card_tags(card_id,tag_id) VALUES($1,$2)", [
+          card.id,
+          tagId,
+        ]);
+      }
     }
+    // 确认事务。相当于告诉数据库“这些操作都成功了，请一起保存”。
+    await client.query("COMMIT");
+  } catch (error) {
+    // 撤销事务。从 BEGIN 之后进行的数据库修改都会被取消，就像这些操作没发生一样。
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    // 把借来的连接还给连接池，让其他请求可以使用
+    client.release();
   }
-  return await getCardById(card.id);
+  return await getCardById(cardId);
 };
 
 // 按 id 查卡片（含 tags / 作者信息 / 点赞收藏数 / 当前用户是否已点赞收藏）
@@ -216,49 +235,90 @@ export const toggleVisibility = async (id: number) => {
   return result.rows[0];
 };
 // 更新卡片
+/**
+ * 
+answer = CASE
+  WHEN 条件1 THEN 结果1
+  WHEN 条件2 THEN 结果2
+  ELSE 结果3
+END
+ *COALESCE($3, type) <> 'question'，type 不是 'question'，`NULL`（清空答案）
+ * $8  	type 是 'question' 且传了 answer,`$4`（用新答案）
+ * ELSE	type 是 'question' 且没传 answer,原来的答案（不变）
+ */
 export const updateCard = async (
   id: number,
   title?: string,
   content?: string,
   type?: string,
-  answer?: string,
+  answer?: string | null,
   visibility?: string,
-  difficulty?: string,
-  tags?: string[]
+  difficulty?: string | null,
+  tags?: string[],
+  answerProvided = false,
+  difficultyProvided = false
 ) => {
   // COALESCE 是 SQL 函数：COALESCE(A, B) 意思是"如果 A 不是 NULL 就用 A，否则用 B"。
-  await pool.query(
-    `UPDATE cards SET 
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    await client.query(
+      `UPDATE cards SET
       title=COALESCE($1, title),
       content=COALESCE($2, content),
       type=COALESCE($3, type),
-      answer=COALESCE($4, answer),
+      answer=CASE
+        WHEN COALESCE($3, type) <> 'question' THEN NULL 
+        WHEN $8 THEN $4
+        ELSE answer
+      END,
       visibility=COALESCE($5, visibility),
-      difficulty=COALESCE($6, difficulty),
+      difficulty=CASE
+        WHEN COALESCE($3, type) <> 'question' THEN NULL
+        WHEN $9 THEN $6
+        ELSE difficulty
+      END,
       updated_at=NOW()
     WHERE id=$7
     RETURNING *`,
-    [title, content, type, answer, visibility, difficulty, id]
-  );
-  // 用户没传 tags → tags 是 undefined，保留原有标签 → 不处理
-  // 用户传了空数组 tags: [] → 用户想清空所有标签 → 要删掉所有关联
-  if (tags !== undefined) {
-    // 删掉这张卡原有的所有card_tags关联
-    await pool.query("DELETE FROM card_tags WHERE card_id=$1", [id]);
-    // 按新的tags重新建立关联 （复用createCard里的逻辑）
-    if (tags.length > 0) {
-      for (const tagName of tags) {
-        const tagResult = await pool.query(
-          `INSERT INTO tags(name) VALUES($1) ON CONFLICT(name) DO UPDATE SET name=$1 RETURNING id`,
-          [tagName]
-        );
-        const tagId = tagResult.rows[0].id;
-        await pool.query(
-          `INSERT INTO card_tags(card_id,tag_id) VALUES($1,$2)`,
-          [id, tagId]
-        );
+      [
+        title,
+        content,
+        type,
+        answer,
+        visibility,
+        difficulty,
+        id,
+        answerProvided,
+        difficultyProvided,
+      ]
+    );
+    // 用户没传 tags → tags 是 undefined，保留原有标签 → 不处理
+    // 用户传了空数组 tags: [] → 用户想清空所有标签 → 要删掉所有关联
+    if (tags !== undefined) {
+      // 删掉这张卡原有的所有card_tags关联
+      await client.query("DELETE FROM card_tags WHERE card_id=$1", [id]);
+      // 按新的tags重新建立关联 （复用createCard里的逻辑）
+      if (tags.length > 0) {
+        for (const tagName of tags) {
+          const tagResult = await client.query(
+            `INSERT INTO tags(name) VALUES($1) ON CONFLICT(name) DO UPDATE SET name=$1 RETURNING id`,
+            [tagName]
+          );
+          const tagId = tagResult.rows[0].id;
+          await client.query(
+            `INSERT INTO card_tags(card_id,tag_id) VALUES($1,$2)`,
+            [id, tagId]
+          );
+        }
       }
     }
+    await client.query("COMMIT");
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
   }
   return await getCardById(id);
 };

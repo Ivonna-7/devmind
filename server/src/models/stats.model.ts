@@ -13,7 +13,11 @@ export const getTagStats = async (userId: number, limit: number) => {
      LIMIT $2`,
     [userId, limit]
   );
-  return result.rows;
+  // PostgreSQL 的 COUNT() 返回 bigint；JavaScript Number 精度不够，所以Node的 pg 驱动返回字符串
+  return result.rows.map((row) => ({
+    ...row,
+    count: parseInt(row.count),
+  }));
 };
 
 // 总览统计:卡片总数、类型分布、掌握度分布、被点赞/收藏数
@@ -77,7 +81,7 @@ export const getOverviewStats = async (userId: number) => {
     (acc: any, cur: any) => {
       acc[cur.mastery] = parseInt(cur.count);
       return acc;
-  }, {});
+    }, {});
   const by_visibility = visibilityResult.rows.reduce((acc: any, cur: any) => {
     acc[cur.visibility] = parseInt(cur.count);
     return acc;
@@ -110,9 +114,10 @@ export const getOverviewStats = async (userId: number) => {
 export const getHeatmapStats = async (userId: number) => {
   //  DATE(created_at)：把 TIMESTAMP 转成 DATE（去掉时分秒），才能按"天"分组
   // - INTERVAL '365 days'：PostgreSQL 日期间隔语法
+  // PostgreSQL 的 `DATE()` 函数返回的是本地地时区的日期，不是 UTC 日期
   const result = await pool.query(
     `SELECT 
-    DATE(created_at) AS date,
+    TO_CHAR(DATE(created_at), 'YYYY-MM-DD') AS date,
     COUNT(*) AS count
     FROM cards
     WHERE user_id = $1
@@ -121,9 +126,9 @@ export const getHeatmapStats = async (userId: number) => {
     ORDER BY DATE(created_at) ASC`,
     [userId]
   );
-  // count 是字符串，转成数字；date 已经是 Date 对象
+  // date 由 SQL 格式化为 YYYY-MM-DD 字符串，避免 pg 将 DATE 解析为 Date 后发生时区偏移
   return result.rows.map((row) => ({
-    date: row.date.toISOString().slice(0, 10),
+    date: row.date,
     count: parseInt(row.count),
   }));
 };

@@ -11,7 +11,7 @@ export const getHeatmap = () =>
 
 /** 标签分布：当前用户使用最多的前 N 个标签（雷达图数据，需登录） */
 export const getTagStats = (limit: number) =>
-  client.get<{ name: string; count: string }[]>("stats/tags", {
+  client.get<{ name: string; count: number }[]>("stats/tags", {
     params: { limit },
   });
 

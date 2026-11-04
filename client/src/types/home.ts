@@ -45,7 +45,7 @@ export class Card {
   /** 难度等级（可选） */
   difficulty: "easy" | "medium" | "hard" | null = null;
   /** 掌握度 */
-  mastery?: number;
+  mastery?: "new" | "fuzzy" | "remember" | "master";
   /** 上次复习时间 */
   last_reviewed_at?: string | null;
   /** 创建时间 */

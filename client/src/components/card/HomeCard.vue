@@ -3,7 +3,7 @@
   ⚠️ 此组件含社区互动，工作台（管理自己的卡片，操作为置顶/编辑/删除）需另做处理，勿直接复用。
 -->
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { RouterLink } from "vue-router";
 import { useMessage } from "naive-ui";
 import { useAuthStore } from "@/stores/auth";
@@ -32,6 +32,24 @@ const favorited = ref(card.favorited_by_me);
 const favoritesCount = ref(card.favorites_count);
 const liking = ref(false);
 const favoriting = ref(false);
+
+watch(
+  [() => card.liked_by_me, () => card.likes_count],
+  ([likedByMe, count]) => {
+    if (liking.value) return;
+    liked.value = likedByMe;
+    likesCount.value = count;
+  },
+);
+
+watch(
+  [() => card.favorited_by_me, () => card.favorites_count],
+  ([favoritedByMe, count]) => {
+    if (favoriting.value) return;
+    favorited.value = favoritedByMe;
+    favoritesCount.value = count;
+  },
+);
 
 // 标签徽章 如果标签为面试题 + 展示简单|中等|困难
 const badgeLabel = computed(() => {
