@@ -21,8 +21,9 @@ const PORT = process.env.PORT || 3000;
 /** 中间件：请求进来 → 到达你的路由之前，先经过的一系列处理函数
  * 请求进来 → cors() 处理跨域 → express.json() 解析 body → 你的路由处理
  * 每个中间件处理完自己的事，传给下一个。app.use() 就是往这条流水线上加一道工序
+ * origin 的值是前端网页的来源地址，由协议、域名和端口组成，如"http://localhost:5173"
  */
-app.use(cors())
+app.use(cors({ origin: process.env.CLIENT_URL || "http://localhost:5173" }))  // ⚠️ 注意：这里的 origin 要和前端的地址一致，否则跨域请求会被浏览器拦截
 // 中间件：解析请求体里的 JSON（不加的话 POST 请求收到的 body 是 undefined）
 app.use(express.json())
 

@@ -864,3 +864,15 @@ TypeScript 的类型只在编译时存在，运行时对 `req.body` 等外部输
 - **性能敏感、愿意尝鲜**：ArkType。
 
 > 本项目（Express 5 + Vue，校验主在后端）：zod 或 Valibot 二选一，后端场景 zod 就够；Valibot 省的主要是前端体积。
+
+---
+
+## 后端部署说明
+
+| 命令 | 值 | 说明 |
+|------|------|------|
+| **dev** | `tsx watch src/index.ts` | 开发环境，直接运行 ts 文件，改代码自动重启（慢：因为要编译ts） |开发
+| **build** | `tsc` | 调 tsc，按 tsconfig 的 `outDir: ./dist` 把 `src/*.ts` 编译进 `dist/`（编译 TypeScript 到 JavaScript（输出到 dist/）） |构建打包
+| **start** | `node dist/index.js` | 跑编译产物 `dist/index.js`（快：直接运行js） |启动
+
+tsc	TypeScript Compiler，TypeScript 编译器,读取 `src/` 里的所有 ts 文件, 编译成 JavaScript

@@ -1488,3 +1488,22 @@ export const validate =
 - **数字强制转换**：`z.coerce.number().int().positive()` —— query 都是字符串，coerce 转数字；positive 挡掉 `page=-5`（原来负数会直接当 OFFSET 送进 SQL 报错）、`page=0`、`page=abc`。
 - **limit 不设上限**：前端个人主页 / 收藏列表会传 `limit=100`，controller 内部 `Math.min(limit, 50)` 再夹住。schema 若设 `.max(50)` 会把这些正常请求误伤成 400，所以只校验「正整数」不设上限。
 - **严格 enum 不误伤首页**：首页「全部」标签页前端发的是 `type: null`，axios 默认丢弃 null/undefined 参数，后端收不到 `type`，不触发 enum 校验（已实测确认）。
+
+## 20. 部署配置：构建、启动与 CORS
+
+### 构建和启动脚本
+
+文件：`server/package.json` ：
+
+"scripts": {
+  "backend:build": "tsc",
+  "backend:start": "node dist/index.js"
+}
+
+`backend:build` 将 TypeScript 编译到 `server/dist/`；`backend:start` 运行编译后的 `dist/index.js`。部署平台会先执行构建命令，构建成功后再执行启动命令。
+
+### CORS 来源配置
+
+文件：src/index.ts
+app.use(cors({ origin: process.env.CLIENT_URL || "http://localhost:5173" }))
+
