@@ -144,3 +144,4 @@ vite.config.ts.timestamp-*
 # Project docs (personal notes, not for public repo)
 AGENTS.md
 fullstack-learning-guide.md
+/docs/DEPLOYMENT.docx

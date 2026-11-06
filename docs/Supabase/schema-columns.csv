@@ -1,0 +1,40 @@
+table_name,column_order,column_name,data_type,postgres_type,character_maximum_length,numeric_precision,numeric_scale,is_nullable
+card_tags,1,card_id,integer,int4,null,32,0,NO
+card_tags,2,tag_id,integer,int4,null,32,0,NO
+cards,1,id,integer,int4,null,32,0,NO
+cards,2,user_id,integer,int4,null,32,0,YES
+cards,3,title,character varying,varchar,200,null,null,NO
+cards,4,content,text,text,null,null,null,NO
+cards,5,type,character varying,varchar,20,null,null,NO
+cards,6,answer,text,text,null,null,null,YES
+cards,7,visibility,character varying,varchar,10,null,null,YES
+cards,8,is_pinned,boolean,bool,null,null,null,YES
+cards,9,difficulty,character varying,varchar,10,null,null,YES
+cards,10,last_reviewed_at,timestamp with time zone,timestamptz,null,null,null,YES
+cards,11,mastery,character varying,varchar,10,null,null,YES
+cards,12,created_at,timestamp with time zone,timestamptz,null,null,null,YES
+cards,13,updated_at,timestamp with time zone,timestamptz,null,null,null,YES
+favorites,1,id,integer,int4,null,32,0,NO
+favorites,2,user_id,integer,int4,null,32,0,YES
+favorites,3,card_id,integer,int4,null,32,0,YES
+favorites,4,created_at,timestamp with time zone,timestamptz,null,null,null,YES
+likes,1,id,integer,int4,null,32,0,NO
+likes,2,user_id,integer,int4,null,32,0,YES
+likes,3,card_id,integer,int4,null,32,0,YES
+likes,4,created_at,timestamp with time zone,timestamptz,null,null,null,YES
+review_logs,1,id,integer,int4,null,32,0,NO
+review_logs,2,user_id,integer,int4,null,32,0,YES
+review_logs,3,card_id,integer,int4,null,32,0,YES
+review_logs,4,mastery,character varying,varchar,10,null,null,NO
+review_logs,5,reviewed_at,timestamp with time zone,timestamptz,null,null,null,YES
+tags,1,id,integer,int4,null,32,0,NO
+tags,2,name,character varying,varchar,50,null,null,NO
+users,1,id,integer,int4,null,32,0,NO
+users,2,username,character varying,varchar,50,null,null,NO
+users,3,email,character varying,varchar,255,null,null,NO
+users,4,password_hash,character varying,varchar,255,null,null,NO
+users,5,nickname,character varying,varchar,50,null,null,YES
+users,6,avatar,character varying,varchar,500,null,null,YES
+users,7,bio,text,text,null,null,null,YES
+users,8,created_at,timestamp with time zone,timestamptz,null,null,null,YES
+users,9,updated_at,timestamp with time zone,timestamptz,null,null,null,YES

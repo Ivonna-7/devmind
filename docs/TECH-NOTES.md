@@ -876,3 +876,49 @@ TypeScript 的类型只在编译时存在，运行时对 `req.body` 等外部输
 | **start** | `node dist/index.js` | 跑编译产物 `dist/index.js`（快：直接运行js） |启动
 
 tsc	TypeScript Compiler，TypeScript 编译器,读取 `src/` 里的所有 ts 文件, 编译成 JavaScript
+
+## 后端托管方案（多方案 + 推荐）
+
+#### 1.1 免费 / 主流方案对比（2026 现状）
+
+| 平台 | 免费额度 | 休眠/冷启动 | 要信用卡 | 自带库 | 备注 |
+|---|---|---|---|---|---|
+| **Render** | 750 实例小时/月（够 1 个服务常驻）、512MB、5GB 流量 | 15 分钟无流量休眠，冷启动约 50-70 秒 | 否 | 否（配外部库） | 生态成熟、文档全、GitHub 自动部署，但需要绑信用卡 |
+| **Koyeb** | 1 个 Web 服务、0.1vCPU、512MB、2GB SSD | 无流量休眠（不活跃时不停止，不用一直ping它，他会一直运行），有冷启动 | **否** | Postgres 但仅 5 活跃小时/月（不够用） | 真正免费，配外部库需绑信用卡 |
+
+
+#### 1.2 企业 / 付费常用方案（了解向，不免费）
+
+| 平台 | 类型 | 说明 | 大致成本 |
+|---|---|---|---|
+| **AWS** | EC2 / ECS / App Runner / Elastic Beanstalk | 国外企业事实标准，弹性强、生态最全，运维复杂度高 | 按量，小服务 $5-20/月起 |
+| **阿里云 / 腾讯云** | ECS 云服务器 / Serverless 应用引擎 SAE / 云托管 | 国内企业主流，国内访问快、备案方便，有学生/新人优惠 | 轻量服务器 ¥24/月起 |
+| **Azure** | App Service / Container Apps | 微软生态、企业采购常见 | 按量 |
+| **GCP Cloud Run** | 容器 Serverless | 按请求计费、缩到零、冷启动快，有每月免费额度 | 低流量近乎免费，超出按量 |
+| **Heroku** | PaaS | 老牌，体验好，但 2022 已取消免费层 | $5/月起 |
+| **自建 VPS** | DigitalOcean / Linode / Vultr | 一台云主机自己装 Node+Nginx+PM2，最灵活也最费心 | $4-6/月起 |
+
+> 企业里后端多跑在 AWS ECS/EKS、阿里云 ACK/SAE、或 K8s 集群上，配 CI/CD（GitHub Actions / Jenkins / GitLab CI）自动构建镜像推到容器平台。
+前端托管方案（多方案 + 推荐）
+
+## 前端是 Vite 打包的纯静态文件（`dist/`），托管需求简单，免费方案都够用且稳定。
+
+#### 1.1 免费 / 主流方案对比
+
+| 平台 | 免费额度 | SPA 路由处理 | 特点 |
+|---|---|---|---|
+| **Vercel** | 100GB 流量/月、自动 HTTPS、全球 CDN | 需 `vercel.json` rewrites 到 index.html | 部署体验最顺，GitHub push 自动部署，Vite 零配置识别 |
+| **Cloudflare Pages** | **流量不限**、全球 CDN（节点最多）、构建 500 次/月 | SPA 自动回退 index.html | 流量无限是最大优势，国内访问相对快 |
+| **Netlify** | 100GB 流量/月、300 构建分钟/月 | `_redirects` 或 `netlify.toml` | 老牌，表单/函数等附加能力多 |
+| **GitHub Pages** | 1GB 存储、100GB 流量/月 | 需手动处理 history 模式回退 | 纯静态最省事，但 SPA 路由配置麻烦、无环境变量注入 |
+
+#### 1.2 企业常用方案（了解向）
+
+| 方案 | 说明 |
+|---|---|
+| **OSS + CDN**（阿里云 OSS / 腾讯云 COS + CDN） | 国内企业前端主流：静态文件传对象存储，挂 CDN 加速，配合备案域名 |
+| **AWS S3 + CloudFront** | 国外对应方案，S3 存静态、CloudFront 做 CDN |
+| **自建 Nginx** | VPS 上 Nginx 托管 dist，自己配 HTTPS（Certbot）和 history 回退 |
+
+- **首选 Vercel**：对 Vite/Vue 识别最好，GitHub push 自动部署、预览环境、自定义域名都一键。缺点是国内访问偶尔慢。
+- **若在意国内访问速度 / 想要无限流量**：选 **Cloudflare Pages**，SPA 路由还不用额外配 rewrite。

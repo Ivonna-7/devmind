@@ -1260,5 +1260,37 @@ CLIENT_URL=http://localhost:5173
 前端是大头，完成 MVP 之后就可以开始当真实工具用，建议边用边迭代。zod 放前端完工后做，因为校验规则要跟前端字段完全对齐，前端定型再补更省心。
 
 ---
+## 待优化（暂不处理）
+
+### 1. `updateUser` 部分更新语义
+
+- 位置：`server/src/models/user.model.ts:38-41`、`server/src/schemas/auth.schema.ts:25-29`
+- 当前实现固定更新 `nickname`、`avatar`、`bio` 三个字段，而输入 schema 允许字段省略，也允许空对象 `{}`。
+- 前端目前没有调用 `PUT /api/auth/me`，资料编辑功能尚未实现，因此暂不作为当前使用流程的阻塞问题处理。
+- 后续接入资料编辑功能时，再明确字段省略与主动清空的语义：未提供字段应保留原值，并拒绝空更新。
+
+### 2. 标签筛选链路未接通
+
+- 后端 `GET /api/tags/:name/cards` 可用，但前端无标签详情页、首页无标签筛选入口、ProfileView 标签云不可点。
+- 属功能取舍，暂不处理；后续需要标签筛选功能时再接通前后端链路。
+
+### 3. 收藏列表不显示本人收藏的私有卡片
+
+- getUserFavoriteCards 收藏列表接口当前只返回 `visibility = 'public'` 的卡片，因此即使是本人收藏的私有卡片也不会显示。
+- 后续需确认是否应允许本人查看自己创建的私有卡片，再据此调整查询条件。
+
+### 4. 自动化测试暂未配置
+
+- 后端 `npm test` 目前仍是 npm 初始化时生成的占位脚本：运行后打印 `Error: no test specified` 并以失败状态退出，不会执行任何测试。
+- 目前暂不配置自动化测试；后续需要时再选择测试框架并添加测试文件，覆盖权限、部分更新、事务回滚等关键行为。当前依赖类型检查、构建和人工验证。
+
+### 5. 评估生产环境是否改用 Cookie 鉴权
+
+- 当前 JWT 存在 `localStorage`，并通过 `Authorization` 请求头发送。
+- 评估原因：`localStorage` 可被页面 JavaScript 读取，若发生 XSS，攻击脚本可能窃取 token；`HttpOnly` Cookie 可阻止 JavaScript 直接读取 Cookie，降低 token 被窃取的风险，但 Cookie 会由浏览器自动随请求发送，因此改造时还必须处理 CSRF 防护及跨站 Cookie 配置。
+- 后续评估是否改用 `HttpOnly` Cookie；若改造，需同步处理前后端登录/鉴权、CORS credentials、Cookie 的 `SameSite`/`Secure` 属性及 CSRF 防护。当前不改鉴权方式。
+
+
+---
 
 *本文档随项目进展持续更新。*
