@@ -2,6 +2,10 @@
  * 基类 .detail-prose：详情页正文用，间距宽松
  * 修饰类 .detail-prose--compact：紧凑变体（弹窗预览等小空间场景），仅覆盖间距 / 字号 */
 
+.detail-prose {
+  max-width: 75ch;
+}
+
 .detail-prose h1,
 .detail-prose h2,
 .detail-prose h3,

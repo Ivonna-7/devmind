@@ -158,7 +158,7 @@ onMounted(getProfileInfo);
   <n-spin :show="loading">
     <div class="pb-8">
       <section
-        class="relative mx-auto h-39 max-w-7xl overflow-hidden rounded-b-2xl bg-linear-to-r from-[#FEF3C7] via-[#FCD34D] to-[#F59E0B]"
+        class="page-container page-container--flush relative mx-auto h-39 overflow-hidden rounded-b-2xl bg-linear-to-r from-[#FEF3C7] via-[#FCD34D] to-[#F59E0B]"
         aria-label="个人主页封面"
       >
         <span class="absolute left-10 top-3 text-5xl opacity-20">📚</span>
@@ -167,7 +167,7 @@ onMounted(getProfileInfo);
         <span class="absolute right-36 top-8 text-3xl opacity-20">✦</span>
       </section>
 
-      <section class="relative mx-auto mb-8 max-w-7xl px-8">
+      <section class="page-container relative mx-auto mb-8">
         <div
           class="-mt-15 flex flex-col gap-4 rounded-2xl border-x border-b border-line-soft bg-card p-7 shadow-[0_4px_20px_rgba(0,0,0,0.04)] md:flex-row md:items-end md:gap-6"
         >
@@ -227,7 +227,7 @@ onMounted(getProfileInfo);
         </div>
       </section>
 
-      <main class="mx-auto max-w-7xl px-8">
+      <main class="page-container mx-auto">
         <section>
           <div class="mb-3.5">
             <h2 class="font-serif text-lg font-semibold text-ink-900">

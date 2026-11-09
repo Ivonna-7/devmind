@@ -88,7 +88,7 @@ function handleUserMenuSelect(key: string | number) {
 
 <template>
   <header class="sticky top-0 z-40 backdrop-blur bg-bg/90 border-b border-line">
-    <div class="max-w-7xl mx-auto flex items-center gap-6 px-8 h-16">
+    <div class="page-container flex items-center gap-6 h-16">
       <!-- Logo -->
       <div class="flex items-center gap-2.5">
         <div

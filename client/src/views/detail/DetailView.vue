@@ -318,7 +318,7 @@ onUnmounted(() => {
 
 <template>
   <n-spin :show="loading">
-    <main class="max-w-7xl w-full mx-auto px-8 pt-7 pb-5 flex-1 min-h-[60vh]">
+    <main class="page-container pt-7 pb-5 flex-1 min-h-[60vh]">
       <div
         v-if="cardDetail"
         class="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_280px] gap-12"

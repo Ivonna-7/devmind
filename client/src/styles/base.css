@@ -45,6 +45,21 @@
   --font-mono: "JetBrains Mono", "Fira Code", "SF Mono", Consolas, monospace;
 }
 
+@layer components {
+  .page-container {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 320px;
+    max-width: 1920px;
+    margin-inline: auto;
+    padding-inline: 24px;
+  }
+
+  .page-container--flush {
+    padding-inline: 0;
+  }
+}
+
 /* 全局基础样式（对应 tokens.css 的 html/body 部分） */
 html,
 body {

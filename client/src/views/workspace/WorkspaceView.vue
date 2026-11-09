@@ -142,7 +142,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <main class="max-w-7xl w-full mx-auto px-8 flex-1">
+  <main class="page-container flex-1">
     <div class="grid grid-cols-1 lg:grid-cols-[240px_minmax(0,1fr)] gap-9 pt-8">
       <!-- 左侧筛选 -->
       <WorkspaceSidebar

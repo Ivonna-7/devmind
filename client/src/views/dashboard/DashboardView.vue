@@ -135,7 +135,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <main class="max-w-7xl w-full mx-auto px-8 pt-8 pb-10 flex-1">
+  <main class="page-container pt-8 pb-10 flex-1">
     <!-- 页头 -->
     <div class="mb-6">
       <h1 class="font-serif text-[32px] font-semibold text-ink-900">

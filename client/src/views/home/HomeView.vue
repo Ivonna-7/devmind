@@ -73,7 +73,7 @@ onMounted(getCards);
 
 <template>
   <!-- Hero Section -->
-  <section class="max-w-7xl w-full mx-auto px-8 pt-6 pb-6">
+  <section class="page-container pt-6 pb-6">
     <div class="flex items-end justify-between gap-12">
       <div>
         <h1
@@ -214,7 +214,7 @@ onMounted(getCards);
     class="border-y border-line bg-bg/95 backdrop-blur sticky top-16 z-30"
   >
     <div
-      class="max-w-7xl mx-auto px-8 py-3.5 flex items-center justify-between flex-wrap gap-3"
+      class="page-container py-3.5 flex items-center justify-between flex-wrap gap-3"
     >
       <div class="flex items-center gap-1 overflow-x-auto py-0.5">
         <button
@@ -252,7 +252,7 @@ onMounted(getCards);
   </section>
 
   <!-- Main Content / Cards Feed -->
-  <main class="max-w-7xl w-full mx-auto px-8 pt-6 pb-4 flex-1">
+  <main class="page-container pt-6 pb-4 flex-1">
     <!-- Loading State -->
     <div
       v-if="loading"
@@ -286,7 +286,7 @@ onMounted(getCards);
   <!-- 分页（main 外，独立间距） -->
   <div
     v-if="cards.length > 0"
-    class="max-w-7xl w-full mx-auto px-8 pb-4 flex justify-center"
+    class="page-container pb-4 flex justify-center"
   >
     <n-pagination
       v-model:page="page"
